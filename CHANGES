@@ -1,4 +1,21 @@
 
+from V2.0 to 2.1?
+
+_sane.c : 
+  - support for numpy (numarray still possible), define ARRAY_SUPPORT
+  - arr_scan allows colors array using numpy
+  _checkArray_Support : answer as tupple the array_support at compilation and
+    if libraries are found at execution
+
+sane.py:
+  - arr_scan allows colors array using numpy
+  
+setup.py:
+  - define WITH_NUMPY if available
+
+demo_numpy:
+  - various call of arr_snap except 16bit colors not supported by Epkowa or libsane
+
 from V1.0 to V2.0
 
 _sane.c:
