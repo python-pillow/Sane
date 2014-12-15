@@ -19,4 +19,4 @@ In order to install the module type::
 
 
 For some basic documentation please look at the file sanedoc.txt
-The two demo_*.py scripts give basic examples on how to use the software.
+The three demo_*.py scripts give basic examples on how to use the software.
