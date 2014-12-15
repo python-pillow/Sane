@@ -19,6 +19,10 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 
 ******************************************************************/
+/*
+ *   added support for arrays using numpy :
+ *                          dec. 13th, 2014, J.F. Berar 
+ */
 
 /* SaneDev objects */
 
@@ -962,13 +966,33 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
 }
 
 
-#ifdef WITH_NUMARRAY
-
+#ifdef WITH_NUMPY
+#define ARRAY_SUPPORT
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION  /* compilation warning in include */
+#include "numpy/ndarraytypes.h"
+#include "numpy/ndarrayobject.h" 
+/* #define DUMMY void * */
+#define ARRAY_TYPE    int
+#define NAT_uint8     NPY_UBYTE 
+#define NAT_uint16    NPY_USHORT 
+#define ARRAY_SUPPORT_PACKAGE_ERROR "numpy package not available"
+#define ARRAY_SUPPORT_MSG   "Numpy"
+#elif defined  WITH_NUMARRAY
+#define ARRAY_SUPPORT
 #include "numarray/libnumarray.h"
 
+#define ARRAY_TYPE    NumarrayType 
+#define NAT_uint8     tUInt8
+#define NAT_uint16    tUInt16
+#define ARRAY_SUPPORT_PACKAGE_ERROR "numarray package not available"
+#define ARRAY_SUPPORT_MSG   "NumArray"
+#endif /* WITH_NUMARRAY or WITH_NUMPY both defining ARRAY_SUPPORT*/
+
+
+#ifdef ARRAY_SUPPORT 
 /* this global variable is set to 1 in 'init_sane()' after successfully
    importing the numarray module. */
-int NUMARRAY_IMPORTED = 0;
+int ARRAY_IMPORTED = 0;
 
 static PyObject *
 SaneDev_arr_snap(SaneDevObject *self, PyObject *args)
@@ -979,16 +1003,16 @@ SaneDev_arr_snap(SaneDevObject *self, PyObject *args)
   SANE_Parameters p;
 
   PyArrayObject *pyArr = NULL;
-  NumarrayType arrType;
+  ARRAY_TYPE arrType;
   int line, line_index, buffer_index, remain_bytes_line, num_pad_bytes;
-  int cp_num_bytes, total_remain, bpp, arr_bytes_per_line;
+  int cp_num_bytes, total_remain, bpp, arr_bytes_per_line,bfc;
   int pixels_per_line = -1;
   char errmsg[80];
 
-  if (!NUMARRAY_IMPORTED)
+  if (!ARRAY_IMPORTED)
     {
-      PyErr_SetString(ErrorObject, "numarray package not available");
-      return NULL;
+        PyErr_SetString(ErrorObject, ARRAY_SUPPORT_PACKAGE_ERROR);
+        return NULL;
     }
 
   if (!PyArg_ParseTuple(args, "|i", &pixels_per_line))
@@ -1000,6 +1024,7 @@ SaneDev_arr_snap(SaneDevObject *self, PyObject *args)
     }
 
   sane_get_parameters(self->h, &p);
+#ifdef WITH_NUMARRAY
   if (p.format != SANE_FRAME_GRAY)
     {
       sane_cancel(self->h);
@@ -1007,16 +1032,26 @@ SaneDev_arr_snap(SaneDevObject *self, PyObject *args)
       PyErr_SetString(ErrorObject, errmsg);
       return NULL;
     }
-
+#endif
+  if (p.format == SANE_FRAME_GRAY) bfc = 1;   /* bytes for color */
+  else if  (p.format == SANE_FRAME_RGB) bfc = 3;
+  else
+    {
+      sane_cancel(self->h);
+      snprintf(errmsg, 80, "Array only supports gray-scale or rgb-color images");
+      PyErr_SetString(ErrorObject, errmsg);
+      return NULL;
+    }
+          
   if (p.depth == 8)
     {
       bpp=1;   /* bytes-per-pixel */
-      arrType = tUInt8;
+      arrType = NAT_uint8;
     }
   else if (p.depth == 16)
     {
       bpp=2;   /* bytes-per-pixel */
-      arrType = tUInt16;
+      arrType = NAT_uint16;
     }
   else
     {
@@ -1025,7 +1060,6 @@ SaneDev_arr_snap(SaneDevObject *self, PyObject *args)
       PyErr_SetString(ErrorObject, errmsg);
       return NULL;
     }
-
   if (pixels_per_line < 1)
     /* The user can choose a smaller result array than the actual scan */
     pixels_per_line = p.pixels_per_line;
@@ -1035,15 +1069,19 @@ SaneDev_arr_snap(SaneDevObject *self, PyObject *args)
 	PyErr_SetString(ErrorObject,"given pixels_per_line too big");
 	return NULL;
       }
-  /* important: NumArray have indices like (y, x) !! */
+#ifdef WITH_NUMPY
+  npy_intp numpy_shape[] = { p.lines, pixels_per_line, bfc};
+  /* printf ("numpy shape %d x %d x %d  shape_dim %d\n", numpy_shape[0], numpy_shape[1], numpy_shape[2], bfc==1?2:3); */
+  if (!( pyArr = PyArray_SimpleNew(bfc==1?2:3, numpy_shape, arrType) )) 
+#elif defined WITH_NUMARRAY
+      /* important: NumArray have indices like (y, x) !! */
   if (!(pyArr = NA_NewArray(NULL, arrType, 2, p.lines, pixels_per_line)))
+#endif
     {
-      PyErr_SetString(ErrorObject, "failed to create NumArray object");
+      PyErr_SetString(ErrorObject, "failed to create ARRAY_SUPPORT object");
       return NULL;
     }
 
-  arr_bytes_per_line = pixels_per_line * bpp;
-  st=SANE_STATUS_GOOD;
 #ifdef WRITE_PGM
   FILE *fp;
   fp = fopen("sane_p5.pgm", "w");
@@ -1051,18 +1089,29 @@ SaneDev_arr_snap(SaneDevObject *self, PyObject *args)
 	  p.lines, (int) pow(2.0, (double) p.depth)-1);
 #endif
   line_index = line = 0;
+  arr_bytes_per_line = pixels_per_line * bpp * bfc;
   remain_bytes_line = arr_bytes_per_line;
-  total_remain = p.bytes_per_line * p.lines;
+  total_remain = p.bytes_per_line  * p.lines;
   num_pad_bytes = p.bytes_per_line - arr_bytes_per_line;
-
+  st=SANE_STATUS_GOOD;
   while (st!=SANE_STATUS_EOF)
     {
+#ifdef DEBUG
+      printf(" Total remain %d READSIZE %d  ", total_remain, READSIZE);
+#endif
       Py_BEGIN_ALLOW_THREADS
       st = sane_read(self->h, buffer,
-		     READSIZE < total_remain ? READSIZE : total_remain, &len);
+             READSIZE < total_remain ? READSIZE : total_remain, &len); 
+#ifdef DEBUG
+      printf("st=%d\n",st);
+#endif
       Py_END_ALLOW_THREADS
+      if (st && (st!=SANE_STATUS_EOF))
+      {   sane_cancel(self->h);
+          return PySane_Error(st);
+        }
 #ifdef WRITE_PGM
-      printf("p5_write: read %d of %d\n", len, READSIZE);
+      printf("p5_write: read %d of %d st=%d\n", len, READSIZE, st);
       fwrite(buffer, 1, len, fp);
 #endif
 
@@ -1082,9 +1131,13 @@ SaneDev_arr_snap(SaneDevObject *self, PyObject *args)
 		 line * arr_bytes_per_line + line_index);
 	  printf("len is now %d\n", len);
 #endif
-	  memcpy(pyArr->data + line * arr_bytes_per_line + line_index,
-		 buffer + buffer_index, cp_num_bytes);
-
+#ifdef WITH_NUMPY
+      memcpy(PyArray_DATA(pyArr)+ line * arr_bytes_per_line + line_index, 
+             buffer + buffer_index, cp_num_bytes);
+#elif defined WITH_NUMARRAY
+      memcpy(pyArr->data + line * arr_bytes_per_line + line_index,
+		     buffer + buffer_index, cp_num_bytes);
+#endif
 	  buffer_index += cp_num_bytes;
 	  if (remain_bytes_line ==0)
 	    {
@@ -1113,9 +1166,13 @@ SaneDev_arr_snap(SaneDevObject *self, PyObject *args)
   return (PyObject*) pyArr;
 }
 
+#else  
+static PyObject *
+SaneDev_arr_snap(SaneDevObject *self, PyObject *args)
+{    return PySane_Error( "Not compiled with array support (numpy or numarray");
+     }
 
-
-#endif /* WITH_NUMARRAY */
+#endif /* WITH_NUMARRAY or WITH_NUMPY both defining ARRAY_SUPPORT */
 
 static PyMethodDef SaneDev_methods[] = {
 	{"get_parameters",	(PyCFunction)SaneDev_get_parameters,	1},
@@ -1128,9 +1185,9 @@ static PyMethodDef SaneDev_methods[] = {
 	{"start",	(PyCFunction)SaneDev_start,	1},
 	{"cancel",	(PyCFunction)SaneDev_cancel,	1},
 	{"snap",	(PyCFunction)SaneDev_snap,	1},
-#ifdef WITH_NUMARRAY
+/* #ifdef ARRAY_SUPPORT */
 	{"arr_snap",	(PyCFunction)SaneDev_arr_snap,	1},
-#endif /* WITH_NUMARRAY */
+/*#endif  */
 	{"fileno",	(PyCFunction)SaneDev_fileno,	1},
  	{"close",	(PyCFunction)SaneDev_close,	1},
 	{NULL,		NULL}		/* sentinel */
@@ -1278,16 +1335,22 @@ PySane_OPTION_IS_SETTABLE(PyObject *self, PyObject *args)
   return PyInt_FromLong( SANE_OPTION_IS_SETTABLE(cap));
 }
 
+static PyObject *
+PySane_checkSaneArray(PyObject *self, PyObject *args)
+{
+   return Py_BuildValue("ssi", "checkSaneArray", ARRAY_SUPPORT_MSG, ARRAY_IMPORTED);
+}
 
 /* List of functions defined in the module */
 
 static PyMethodDef PySane_methods[] = {
-	{"init",	PySane_init,		1},
+    {"init",    PySane_init,        1},
 	{"exit",	PySane_exit,		1},
 	{"get_devices",	PySane_get_devices,	1},
 	{"_open",	PySane_open,	1},
 	{"OPTION_IS_ACTIVE",	PySane_OPTION_IS_ACTIVE,	1},
 	{"OPTION_IS_SETTABLE",	PySane_OPTION_IS_SETTABLE,	1},
+    {"checkSaneArray",  PySane_checkSaneArray,      1},
 	{NULL,		NULL}		/* sentinel */
 };
 
@@ -1333,7 +1396,7 @@ init_sane(void)
         return;
 #endif
 
-	/* Add some symbolic constants to the module */
+    /* Add some symbolic constants to the module */
 	PyObject *d = PyModule_GetDict(m);
 	ErrorObject = PyErr_NewException("_sane.error", NULL, NULL);
 	PyDict_SetItemString(d, "error", ErrorObject);
@@ -1388,17 +1451,22 @@ init_sane(void)
 	if (PyErr_Occurred())
 		Py_FatalError("can't initialize module _sane");
 
-#ifdef WITH_NUMARRAY
+#ifdef ARRAY_SUPPORT
+#ifdef WITH_NUMPY
+    import_array();
+#elif defined WITH_NUMARRAY
 	import_libnumarray();
-	if (PyErr_Occurred())
-	  PyErr_Clear();
+#endif
+    if (PyErr_Occurred())
+      Py_FatalError("can't import library");
+	/*  PyErr_Clear();*/
 	else
 	  /* this global variable is declared just in front of the
 	     arr_snap() function and should be set to 1 after
 	     successfully importing the numarray module. */
-	  NUMARRAY_IMPORTED = 1;
+	  ARRAY_IMPORTED = 1;
 
-#endif /* WITH_NUMARRAY */
+#endif /* WITH_ARRAY */
 #if PY_MAJOR_VERSION >= 3
     return m;
 #endif
