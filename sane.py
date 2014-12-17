@@ -10,7 +10,14 @@ __author__  = ['Andrew Kuchling', 'Ralph Heinkel']
 
 from PIL import Image
 
-import _sane
+#print "SANE :", __file__,  "  ..... call import _sane"
+#import sys
+#sys.path.append('./')
+import _sane 
+if not 'checkSaneArray' in dir(_sane) :
+    print "_BAD VERSION for_sane.so"
+    sys.exit(1)
+#print'checkSaneArray', _sane.checkSaneArray()
 from _sane import *
 
 TYPE_STR = { TYPE_BOOL:   "TYPE_BOOL",   TYPE_INT:    "TYPE_INT",
@@ -259,13 +266,15 @@ class SaneDev:
         scanned 34 pixels per line, you will obtain an array with 32 pixels
         per line.
         """
+        if checkSaneArray()[2] == 0 :
+            raise RuntimeError('arr_snap() not defined in _sane compiled without array support')
         (mode, last_frame, (xsize, ysize), depth, bpl) = self.get_parameters()
-        if not mode in ['gray', 'red', 'green', 'blue']:
+        if not mode in ['gray', 'red', 'green', 'blue'] and checkSaneArray()[1] != "Numpy" :
             raise RuntimeError('arr_snap() only works with monochrome images')
         if multipleOf < 1:
             raise ValueError('option "multipleOf" must be a positive number')
         elif multipleOf > 1:
-            pixels_per_line = xsize - divmod(xsize, 4)[1]
+            pixels_per_line = xsize - divmod(xsize, multipleOf)[1]
         else:
             pixels_per_line = xsize
         return self.dev.arr_snap(pixels_per_line)
