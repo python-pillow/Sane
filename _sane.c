@@ -1072,7 +1072,7 @@ SaneDev_arr_snap(SaneDevObject *self, PyObject *args)
 #ifdef WITH_NUMPY
   npy_intp numpy_shape[] = { p.lines, pixels_per_line, bfc};
   /* printf ("numpy shape %d x %d x %d  shape_dim %d\n", numpy_shape[0], numpy_shape[1], numpy_shape[2], bfc==1?2:3); */
-  if (!( pyArr = PyArray_SimpleNew(bfc==1?2:3, numpy_shape, arrType) )) 
+  if (!( pyArr = (PyArrayObject *)PyArray_SimpleNew(bfc==1?2:3, numpy_shape, arrType) )) 
 #elif defined WITH_NUMARRAY
       /* important: NumArray have indices like (y, x) !! */
   if (!(pyArr = NA_NewArray(NULL, arrType, 2, p.lines, pixels_per_line)))
@@ -1166,11 +1166,26 @@ SaneDev_arr_snap(SaneDevObject *self, PyObject *args)
   return (PyObject*) pyArr;
 }
 
+static PyObject *
+PySane_checkSaneArray(PyObject *self, PyObject *args)
+{
+  return Py_BuildValue("ssi", "checkSaneArray", ARRAY_SUPPORT_MSG, ARRAY_IMPORTED);
+}
+
 #else  
 static PyObject *
 SaneDev_arr_snap(SaneDevObject *self, PyObject *args)
-{    return PySane_Error( "Not compiled with array support (numpy or numarray");
-     }
+{
+  PyErr_SetString(ErrorObject, "Not compiled with array support (numpy or numarray)");
+  return NULL;
+}
+
+static PyObject *
+PySane_checkSaneArray(PyObject *self, PyObject *args)
+{
+  PyErr_SetString(ErrorObject, "Not compiled with array support (numpy or numarray)");
+  return NULL;
+}
 
 #endif /* WITH_NUMARRAY or WITH_NUMPY both defining ARRAY_SUPPORT */
 
@@ -1333,12 +1348,6 @@ PySane_OPTION_IS_SETTABLE(PyObject *self, PyObject *args)
     return NULL;
   cap=lg;
   return PyInt_FromLong( SANE_OPTION_IS_SETTABLE(cap));
-}
-
-static PyObject *
-PySane_checkSaneArray(PyObject *self, PyObject *args)
-{
-   return Py_BuildValue("ssi", "checkSaneArray", ARRAY_SUPPORT_MSG, ARRAY_IMPORTED);
 }
 
 /* List of functions defined in the module */
