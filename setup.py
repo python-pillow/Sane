@@ -1,7 +1,6 @@
 from distutils.core import setup, Extension
-
-PIL_BUILD_DIR   = '..'
-PIL_IMAGING_DIR = PIL_BUILD_DIR+'/libImaging'
+import distutils.sysconfig
+import os
 
 defs = []
 extra_compile_args =  []
@@ -18,9 +17,10 @@ except ImportError:
     pass
 
 sane = Extension('_sane',
-                 include_dirs = [PIL_IMAGING_DIR],
+                 include_dirs = [
+                     os.path.join(distutils.sysconfig.get_python_inc(), "Imaging")
+                 ],
                  libraries = ['sane'],
-                 library_dirs = [PIL_IMAGING_DIR],
                  define_macros = defs,
                  extra_compile_args = extra_compile_args,
                  sources = ['_sane.c'])
