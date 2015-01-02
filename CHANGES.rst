@@ -5,6 +5,7 @@ Version 2.7.0
 - Split from Pillow to its own repo
 
 - _sane.c : 
+
   - support for numpy (numarray still possible), define ARRAY_SUPPORT
 
   - arr_scan allows colors array using numpy
