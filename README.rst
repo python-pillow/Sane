@@ -1,12 +1,8 @@
 Python SANE module 2.7.0
 ========================
 
-Currently not under active maintenance
---------------------------------------
 
-Python SANE hs been split from Python-Pillow as of version 2.7.0. It
-is currently not under active maintenance. 
-
+Python SANE hs been split from Python-Pillow as of version 2.7.0.
 
 
 The SANE module provides an interface to the SANE scanner and frame
