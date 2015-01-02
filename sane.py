@@ -9,15 +9,6 @@ __version__ = '2.0'
 __author__  = ['Andrew Kuchling', 'Ralph Heinkel']
 
 from PIL import Image
-
-#print "SANE :", __file__,  "  ..... call import _sane"
-#import sys
-#sys.path.append('./')
-import _sane 
-if not 'checkSaneArray' in dir(_sane) :
-    print "_BAD VERSION for_sane.so"
-    sys.exit(1)
-#print'checkSaneArray', _sane.checkSaneArray()
 from _sane import *
 
 TYPE_STR = { TYPE_BOOL:   "TYPE_BOOL",   TYPE_INT:    "TYPE_INT",
