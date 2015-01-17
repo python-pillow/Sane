@@ -4,6 +4,7 @@ import os
 
 defs = []
 extra_compile_args =  []
+include_dirs = [os.path.join(distutils.sysconfig.get_python_inc(), "Imaging")]
 try:
     import numarray
     defs.append(('WITH_NUMARRAY',None))
@@ -13,13 +14,12 @@ try:
     import numpy
     defs.append(('WITH_NUMPY',None))
     extra_compile_args.append('-Wunused-function')
+    include_dirs.append(numpy.get_include())
 except ImportError:
     pass
 
 sane = Extension('_sane',
-                 include_dirs = [
-                     os.path.join(distutils.sysconfig.get_python_inc(), "Imaging")
-                 ],
+                 include_dirs = include_dirs,
                  libraries = ['sane'],
                  define_macros = defs,
                  extra_compile_args = extra_compile_args,
