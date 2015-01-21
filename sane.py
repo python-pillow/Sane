@@ -237,7 +237,7 @@ class SaneDev:
         else:
             raise ValueError('got unknown "mode" from self.get_parameters()')
         im=Image.new(format, (xsize,ysize))
-        self.dev.snap( im.im.id, no_cancel )
+        self.dev.snap(dict(im.im.unsafe_ptrs), no_cancel )
         return im
 
     def scan(self):
