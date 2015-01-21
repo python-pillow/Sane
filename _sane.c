@@ -27,7 +27,6 @@ PERFORMANCE OF THIS SOFTWARE.
 /* SaneDev objects */
 
 #include "Python.h"
-#include "Imaging.h"
 #include <sane/sane.h>
 
 #include <sys/time.h>
@@ -44,6 +43,16 @@ typedef struct {
 	PyObject_HEAD
 	SANE_Handle h;
 } SaneDevObject;
+
+#define	UINT8 unsigned char
+#define INT16 short
+
+typedef struct {
+    int xsize;		/* Image dimension. */
+    int ysize;
+    UINT8 **image8;	/* Set for 8-bit images (pixelsize=1). */
+    UINT8 **image32;	/* Set for 32-bit images (pixelsize=4). */
+} Imaging;
 
 #ifdef WITH_THREAD
 PyThreadState *_save;
@@ -442,7 +451,6 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
   Imaging im;
   SANE_Parameters p;
   int px, py, remain, cplen, bufpos, padbytes;
-  long L;
   char errmsg[80];
   union
     { char c[2];
@@ -450,21 +458,58 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
     }
   endian;
   PyObject *pyNoCancel = NULL;
+  PyObject *ptrDict = NULL;
+  PyObject *dictItem = NULL;
   int noCancel = 0;
 
   endian.i16 = 1;
 
-  if (!PyArg_ParseTuple(args, "l|O", &L, &pyNoCancel))
-    return NULL;
+  if (!PyArg_ParseTuple(args, "O|O", &ptrDict, &pyNoCancel))
+      return NULL;
+
   if (self->h==NULL)
     {
       PyErr_SetString(ErrorObject, "SaneDev object is closed");
       return NULL;
     }
-  im=(Imaging)L;
 
   if (pyNoCancel)
     noCancel = PyObject_IsTrue(pyNoCancel);
+
+  if (!PyDict_Check(ptrDict)){
+      PyErr_SetString(ErrorObject, "Dictionary required");
+      return NULL;
+  }
+
+  dictItem = PyDict_GetItemString(ptrDict, "ysize");
+  if (dictItem) {
+      im.ysize = (int)PyInt_AsLong(dictItem);
+  } else { 
+      PyErr_SetString(ErrorObject, "ysize missing");
+      return NULL; 
+  }
+  dictItem = PyDict_GetItemString(ptrDict, "xsize");
+  if (dictItem) {
+      im.xsize = (int)PyInt_AsLong(dictItem);
+  } else { 
+      PyErr_SetString(ErrorObject, "xsize missing");
+      return NULL; 
+  }
+  dictItem = PyDict_GetItemString(ptrDict, "image8");
+  if (dictItem) {
+      im.image8 = (UINT8 **)PyLong_AsSsize_t(dictItem);
+  } else { 
+      PyErr_SetString(ErrorObject, "image8 missing");
+      return NULL; 
+  }
+  dictItem = PyDict_GetItemString(ptrDict, "image32");
+  if (dictItem) {
+      im.image32 = (UINT8 **)PyLong_AsSsize_t(dictItem);
+  } else { 
+      PyErr_SetString(ErrorObject, "image32 missing");
+      return NULL; 
+  }
+  
 
   st=SANE_STATUS_GOOD; px=py=0;
   /* xxx not yet implemented
@@ -482,24 +527,24 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
       switch (p.depth)
         {
           case 1:
-            remain = p.bytes_per_line * im->ysize;
-            padbytes = p.bytes_per_line - (im->xsize+7)/8;
+            remain = p.bytes_per_line * im.ysize;
+            padbytes = p.bytes_per_line - (im.xsize+7)/8;
             bufpos = 0;
             lastlen = len = 0;
-            while (st!=SANE_STATUS_EOF && py < im->ysize)
+            while (st!=SANE_STATUS_EOF && py < im.ysize)
               {
-                while (len > 0 && py < im->ysize)
+                while (len > 0 && py < im.ysize)
                   {
                     int i, j, k;
                     j = buffer[bufpos++];
                     k = 0x80;
-                    for (i = 0; i < 8 && px < im->xsize; i++)
+                    for (i = 0; i < 8 && px < im.xsize; i++)
                       {
-                        im->image8[py][px++] = (k&j) ? 0 : 0xFF;
+                        im.image8[py][px++] = (k&j) ? 0 : 0xFF;
                         k = k >> 1;
                       }
                     len--;
-                    if (px >= im->xsize)
+                    if (px >= im.xsize)
                       {
                         bufpos += padbytes;
                         len -= padbytes;
@@ -523,22 +568,22 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
               }
             break;
           case 8:
-            remain = p.bytes_per_line * im->ysize;
-            padbytes = p.bytes_per_line - im->xsize;
+            remain = p.bytes_per_line * im.ysize;
+            padbytes = p.bytes_per_line - im.xsize;
             bufpos = 0;
             len = 0;
-            while (st!=SANE_STATUS_EOF && py < im->ysize)
+            while (st!=SANE_STATUS_EOF && py < im.ysize)
               {
-                while (len > 0 && py < im->ysize)
+                while (len > 0 && py < im.ysize)
                   {
                     cplen = len;
-                    if (px + cplen >= im->xsize)
-                        cplen = im->xsize - px;
-                    memcpy(&im->image8[py][px], &buffer[bufpos], cplen);
+                    if (px + cplen >= im.xsize)
+                        cplen = im.xsize - px;
+                    memcpy(&im.image8[py][px], &buffer[bufpos], cplen);
                     len -= cplen;
                     bufpos += cplen;
                     px += cplen;
-                    if (px >= im->xsize)
+                    if (px >= im.xsize)
                       {
                         px = 0;
                         py++;
@@ -561,18 +606,18 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
               }
               break;
           case 16:
-            remain = p.bytes_per_line * im->ysize;
-            padbytes = p.bytes_per_line - 2 * im->xsize;
+            remain = p.bytes_per_line * im.ysize;
+            padbytes = p.bytes_per_line - 2 * im.xsize;
             bufpos = endian.c[0];
             lastlen = len = 0;
-            while (st!=SANE_STATUS_EOF && py < im->ysize)
+            while (st!=SANE_STATUS_EOF && py < im.ysize)
               {
-                while (len > 0 && py < im->ysize)
+                while (len > 0 && py < im.ysize)
                   {
-                    im->image8[py][px++] = buffer[bufpos];
+                    im.image8[py][px++] = buffer[bufpos];
                     bufpos += 2;
                     len -= 2;
-                    if (px >= im->xsize)
+                    if (px >= im.xsize)
                       {
                         bufpos += padbytes;
                         len -= padbytes;
@@ -612,13 +657,13 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
       switch (p.depth)
         {
           case 1:
-            remain = p.bytes_per_line * im->ysize;
-            padbytes = p.bytes_per_line - ((im->xsize+7)/8) * 3;
+            remain = p.bytes_per_line * im.ysize;
+            padbytes = p.bytes_per_line - ((im.xsize+7)/8) * 3;
             bufpos = 0;
             len = 0;
             lastlen = 0;
-            pxmax = 4 * im->xsize;
-            while (st!=SANE_STATUS_EOF && py < im->ysize)
+            pxmax = 4 * im.xsize;
+            while (st!=SANE_STATUS_EOF && py < im.ysize)
               {
                 pxs = px;
                 for (color = 0; color < 3; color++)
@@ -646,7 +691,7 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
                     mask = 0x80;
                     for (bit = 0; (bit < 8) && (px < pxmax); bit++)
                       {
-                         ((UINT8**)(im->image32))[py][px] = (val&mask) ? 0xFF : 0;
+                         ((UINT8**)(im.image32))[py][px] = (val&mask) ? 0xFF : 0;
                         mask = mask >> 1;
                         px += 4;
                       }
@@ -657,7 +702,7 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
                   break;
                 for (bit = 0; bit < 8 && px < pxmax; bit++)
                   {
-                     ((UINT8**)(im->image32))[py][px] = 0;
+                     ((UINT8**)(im.image32))[py][px] = 0;
                      px += 4;
                   }
                 px -= 3;
@@ -674,20 +719,20 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
           case 16:
             if (p.depth == 8)
               {
-                padbytes = p.bytes_per_line - 3 * im->xsize;
+                padbytes = p.bytes_per_line - 3 * im.xsize;
                 bufpos = 0;
                 incr = 1;
               }
             else
               {
-                padbytes = p.bytes_per_line - 6 * im->xsize;
+                padbytes = p.bytes_per_line - 6 * im.xsize;
                 bufpos = endian.c[0];
                 incr = 2;
               }
-            remain = p.bytes_per_line * im->ysize;
+            remain = p.bytes_per_line * im.ysize;
             len = 0;
             lastlen = 0;
-            pxmax = 4 * im->xsize;
+            pxmax = 4 * im.xsize;
             /* probably not very efficient. But we have to deal with these
                possible conditions:
                - we may have padding bytes at the end of a scan line
@@ -697,7 +742,7 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
                  red/green/blue pixel values
 
             */
-            while (st != SANE_STATUS_EOF && py < im->ysize)
+            while (st != SANE_STATUS_EOF && py < im.ysize)
               {
                 for (color = 0; color < 3; color++)
                   {
@@ -724,13 +769,13 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
                         len -= bufpos;
                       }
                     if (st == SANE_STATUS_EOF) break;
-                    ((UINT8**)(im->image32))[py][px++] = buffer[bufpos];
+                    ((UINT8**)(im.image32))[py][px++] = buffer[bufpos];
                     bufpos += incr;
                     len -= incr;
                   }
                 if (st == SANE_STATUS_EOF) break;
 
-                ((UINT8**)(im->image32))[py][px++] = 0;
+                ((UINT8**)(im.image32))[py][px++] = 0;
 
                 if (px >= pxmax)
                   {
@@ -770,7 +815,7 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
               Py_BLOCK_THREADS
               return PySane_Error(st);
             }
-          remain = p.bytes_per_line * im->ysize;
+          remain = p.bytes_per_line * im.ysize;
           bufpos = 0;
           len = 0;
           lastlen = 0;
@@ -795,13 +840,13 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
             }
           px = offset;
           pxa = 3;
-          pxmax = im->xsize * 4;
+          pxmax = im.xsize * 4;
           switch (p.depth)
             {
               case 1:
-                padbytes = p.bytes_per_line - (im->xsize+7)/8;
+                padbytes = p.bytes_per_line - (im.xsize+7)/8;
                 st = SANE_STATUS_GOOD;
-                while (st != SANE_STATUS_EOF && py < im->ysize)
+                while (st != SANE_STATUS_EOF && py < im.ysize)
                   {
                     while (len > 0)
                       {
@@ -810,9 +855,9 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
                         mask = 0x80;
                         for (bit = 0; bit < 8 && px < pxmax; bit++)
                           {
-                            ((UINT8**)(im->image32))[py][px]
+                            ((UINT8**)(im.image32))[py][px]
                                 = val&mask ? 0xFF : 0;
-                            ((UINT8**)(im->image32))[py][pxa] = 0;
+                            ((UINT8**)(im.image32))[py][pxa] = 0;
                             px += 4;
                             pxa += 4;
                             mask = mask >> 1;
@@ -848,17 +893,17 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
               case 16:
                 if (p.depth == 8)
                   {
-                    padbytes = p.bytes_per_line - im->xsize;
+                    padbytes = p.bytes_per_line - im.xsize;
                     incr = 1;
                   }
                 else
                   {
-                    padbytes = p.bytes_per_line - 2 * im->xsize;
+                    padbytes = p.bytes_per_line - 2 * im.xsize;
                     incr = 2;
                     bufpos = endian.c[0];
                   }
                 st = SANE_STATUS_GOOD;
-                while (st != SANE_STATUS_EOF && py < im->ysize)
+                while (st != SANE_STATUS_EOF && py < im.ysize)
                   {
                     while (len <= 0)
                       {
@@ -889,8 +934,8 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
                       }
                     if (st == SANE_STATUS_EOF)
                       break;
-                    ((UINT8**)(im->image32))[py][px] = buffer[bufpos];
-                    ((UINT8**)(im->image32))[py][pxa] = 0;
+                    ((UINT8**)(im.image32))[py][px] = buffer[bufpos];
+                    ((UINT8**)(im.image32))[py][pxa] = 0;
                     bufpos += incr;
                     len -= incr;
                     px += 4;
