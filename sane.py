@@ -296,9 +296,8 @@ class SaneDev:
 
     def arr_snap(self):
         """
-        Read image data and return a 2d numpy array. For single-band images,
-        the array shape will be ``(width, heigth)``, for multi-band images, the
-        array shape will be ``(nbands * width, height)``.
+        Read image data and return a 3d numpy array of the shape
+        ``(nbands, width, heigth)``.
 
         :returns: A ``numpy.array`` object.
         :raises _sane.error: If an error occurs.
@@ -317,7 +316,7 @@ class SaneDev:
             np = numpy.frombuffer(data, numpy.uint16)
         else:
             raise RuntimeError("Unexpected sample size: %d" % sampleSize)
-        return numpy.reshape(np, (samples * width, height))
+        return numpy.reshape(np, (samples, width, height))
 
     def arr_scan(self):
         """
