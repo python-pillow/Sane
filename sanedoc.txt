@@ -1,141 +1,345 @@
-Python Sane module
-==================
-The sane module is an Python interface to the SANE (Scanning is Now Easy)
-library, which provides access to various raster scanning devices such as
-flatbed scanners and digital cameras.  For more information about SANE, consult
-the SANE Web site at http://www.sane-project.org.  Note that this documentation
-doesn't duplicate all the information in the SANE documentation, which you must
-also consult to get a complete understanding.
 
-This module has been originally developed by A.M. Kuchling (amk1@erols.com),
-it is currently maintained by Sandro Mani (manisandro@gmail.com).
+python-sane documentation
+*************************
 
+The sane module is an Python interface to the SANE (Scanning is Now
+Easy) library, which provides access to various raster scanning
+devices such as flatbed scanners and digital cameras.  For more
+information about SANE, consult the SANE website at www.sane-
+project.org. Note that this documentation doesn't duplicate all the
+information in the SANE documentation, which you must also consult to
+get a complete understanding.
 
-The module exports two object types, a bunch of constants, and three
-functions.
+This module has been originally developed by A.M. Kuchling, it is
+currently maintained by Sandro Mani.
 
-sane module methods
--------------------
+* Indices
 
-init()
-    Initialize sane. Returns a tuple (sane_ver, ver_maj, ver_min, ver_patch).
+* Reference
 
-get_devices()
-    Return a list of 4-tuples containing the available scanning devices.
-    Each tuple is of the format (device_name, vendor, model, type).
-
-    device_name -- the device name, suitable for passing to open()
-    vendor -- the device vendor
-    mode -- the device model vendor
-    type -- the device type, such as 'virtual device' or 'video camera'
-
-open(devicename)
-    Open a device for scanning. Suitable values for devname are returned in the
-    first item of the tuples returned by get_devices().
-    Raises a _sane.error on error. Returns a SaneDev object on success.
+* Example
 
 
-SaneDev object
-==============
-Class representing a SANE device. Besides the functions documented below,
-the class has some special attributes which can be read:
+Indices
+=======
 
-devname        -- the scanner device name (as passed to sane.open())
-sane_signature -- the tuple (devname, brand, name, type)
-scanner_model  -- the tuple (brand, name)
-opt            -- dictionary of options
-optlist        -- list of option names
-area           -- scan area
+* *Index*
 
-Furthermore, the scanner options are also exposed as attributes, which can
-be read or set by using the option name as attribute name, i.e.:
+* *Search Page*
 
-    print scanner.mode
-    scanner.mode = 'Color'
 
-An Option object for a scanner option can be retreived via __getitem__
-lookup, i.e.:
+Reference
+=========
 
-        option = scanner['mode']
+sane.init()
 
-SaneDev class methods
----------------------
+   Initialize sane.
 
-get_parameters()
-    Return a 5-tuple holding all the current device settings:
-    (format, last_frame, (pixels_per_line, lines), depth, bytes_per_line)
+   Returns:
+      A tuple "(sane_ver, ver_maj, ver_min, ver_patch)".
 
-    format -- one of "grey", "color", "red", "green", "blue" or "unknown format".
-    last_frame -- whether this is the last frame of a multi frame image
-    pixels_per_line -- width of the scanned image
-    lines -- height of the scanned image
-    depth -- gives number of bits per sample
-    bytes_per_line -- the number of bytes per line
+   Raises _sane.error:
+      If an error occurs.
 
-get_options()
-    Return a list of tuples describing all the available options.
+sane.get_devices()
 
-start()
-    Initiate a scanning operation. This can throw a _sane.error if an
-    invalid value is set for an option.
+   Return a list of 4-tuples containing the available scanning
+   devices. Each tuple is of the format "(device_name, vendor, model,
+   type)", with:
 
-cancel()
-    Cancel an in-progress scanning operation.
+   * *device_name* -- The device name, suitable for passing to
+     "sane.open()".
 
-snap()
-    Read image data and return a PIL.Image object. An RGB image is returned
-    for multi-band images, a L image for single-band images.
+   * *vendor* -- The device vendor.
 
-scan()
-    Convenience method which calls start followed by snap.
+   * *mode* -- The device model vendor.
 
-arr_snap()
-    Read image data and return a 2d numpy array. For single-band images,
-    the array shape will be (width, heigth), for multi-band images, the
-    array shape will be (nbands * width, height).
+   * *type* -- the device type, such as ""virtual device"" or
+     ""video camera"".
 
-arr_scan()
-    Convenience method which calls start followed by arr_snap.
+   Returns:
+      A list of scanning devices.
 
-multi_scan()
-    Return a _SaneIterator for ADF scans.
+   Raises _sane.error:
+      If an error occurs.
 
-fileno()
-    Return the file descriptor for the scanning device.
+sane.open(devname)
 
-def close()
-    Close the scanning device.
+   Open a device for scanning. Suitable values for devname are
+   returned in the first item of the tuples returned by
+   "sane.get_devices()".
 
-Option object
-=============
-Class representing a SANE option. These are returned by a __getitem__
-lookup of an option on the device, i.e.
+   Returns:
+      A "SaneDev" object on success.
 
-    option = scanner["mode"]
+   Raises _sane.error:
+      If an error occurs.
 
-The Option class has the following attributes:
-index -- number from 0 to n, giving the option number
-name -- a string uniquely identifying the option
-title -- single-line string containing a title for the option
-desc -- a long string describing the option, useful as a help message
-type -- type of this option. Possible values: TYPE_BOOL, TYPE_INT,
-        TYPE_STRING, etc.
-unit -- units of this option. Possible values: UNIT_NONE, UNIT_PIXEL, etc.
-size -- size of the value in bytes
-cap -- capabilities available; CAP_EMULATED, CAP_SOFT_SELECT, etc.
-constraint -- constraint on values. Possible values:
-                None : No constraint
-                (min,max,step) : Range
-                list of integers or strings: listed of permitted values
+sane.exit()
 
-Option class methods
---------------------
-is_active()
-    Return whether the option is active.
+   Exit sane.
 
-is_settable()
-    Return whether the option is settable.
+class class sane.SaneDev(devname)
 
-Example usage:
-==============
-See demo_pil.py and demo_numpy.py.
+   Class representing a SANE device. Besides the functions documented
+   below, the class has some special attributes which can be read:
+
+   * *devname*        -- The scanner device name (as passed to
+     "sane.open()").
+
+   * *sane_signature* -- The tuple "(devname, brand, name, type)".
+
+   * *scanner_model*  -- The tuple "(brand, name)".
+
+   * *opt*            -- Dictionary of options.
+
+   * *optlist*        -- List of option names.
+
+   * *area*           -- Scan area.
+
+   Furthermore, the scanner options are also exposed as attributes,
+   which can be read and set:
+
+      print scanner.mode
+      scanner.mode = 'Color'
+
+   An "Option" object for a scanner option can be retreived via
+   "__getitem__()", i.e.:
+
+      option = scanner['mode']
+
+   arr_scan()
+
+      Convenience method which calls "SaneDev.start()" followed by
+      "SaneDev.arr_snap()".
+
+   arr_snap()
+
+      Read image data and return a 2d numpy array. For single-band
+      images, the array shape will be "(width, heigth)", for multi-
+      band images, the array shape will be "(nbands * width, height)".
+
+      Returns:
+         A "numpy.array" object.
+
+      Raises:
+         * **_sane.error** -- If an error occurs.
+
+         * **RuntimeError** -- If *numpy* cannot be imported.
+
+   cancel()
+
+      Cancel an in-progress scanning operation.
+
+   close()
+
+      Close the scanning device.
+
+   fileno()
+
+      Returns:
+         The file descriptor for the scanning device, if any.
+
+      Raises _sane.error:
+         If an error occurs.
+
+   get_options()
+
+      Returns:
+         A list of tuples describing all the available options.
+
+   get_parameters()
+
+      Returns a 5-tuple holding all the current device settings:
+      "(format, last_frame, (pixels_per_line, lines), depth,
+      bytes_per_line)"
+
+      * *format*          -- One of ""grey"", ""color"", ""red"",
+        ""green"", ""blue"" or ""unknown format"".
+
+      * *last_frame*      -- Whether this is the last frame of a
+        multi frame image.
+
+      * *pixels_per_line* -- Width of the scanned image.
+
+      * *lines*           -- Height of the scanned image.
+
+      * *depth*           -- The number of bits per sample.
+
+      * *bytes_per_line*  -- The number of bytes per line.
+
+      Returns:
+         A tuple containing the device settings.
+
+      Raises _sane.error:
+         If an error occurs.
+
+   multi_scan()
+
+      Returns:
+         A "_SaneIterator" for ADF scans.
+
+   scan()
+
+      Convenience method which calls "SaneDev.start()" followed by
+      "SaneDev.snap()".
+
+   snap(no_cancel=False)
+
+      Read image data and return a "PIL.Image" object. An RGB image is
+      returned for multi-band images, a L image for single-band
+      images. "no_cancel" is used for ADF scans by "_SaneIterator".
+
+      Returns:
+         A "PIL.Image" object.
+
+      Raises:
+         * **_sane.error** -- If an error occurs.
+
+         * **RuntimeError** -- If *PIL.Image* cannot be imported.
+
+   start()
+
+      Initiate a scanning operation.
+
+      Throws _sane.error:
+         If an error occurs, for instance if a option is set to an
+         invalid value.
+
+class class sane.Option(args, scanDev)
+
+   Class representing a SANE option. These are returned by a
+   "SaneDev.__getitem__()" lookup of an option on the device, i.e.:
+
+      option = scanner["mode"]
+
+   The "Option" class has the following attributes:
+
+      * *index* -- Number from "0" to "n", giving the option number.
+
+      * *name* -- A string uniquely identifying the option.
+
+      * *title* -- Single-line string containing a title for the
+        option.
+
+      * *desc* -- A long string describing the option, useful as a
+        help message.
+
+      * *type* -- Type of this option: "TYPE_BOOL", "TYPE_INT",
+        "TYPE_STRING", etc.
+
+      * *unit* -- Units of this option. "UNIT_NONE", "UNIT_PIXEL",
+        etc.
+
+      * *size* -- Size of the value in bytes.
+
+      * *cap* -- Capabilities available: "CAP_EMULATED",
+        "CAP_SOFT_SELECT", etc.
+
+      * *constraint* -- Constraint on values. Possible values:
+
+        * None : No constraint
+
+        * "(min,max,step)" : Range
+
+        * list of integers or strings: listed of permitted values
+
+   is_active()
+
+      Returns:
+         Whether the option is active.
+
+   is_settable()
+
+      Returns:
+         Whether the option is settable.
+
+class class sane._SaneIterator(device)
+
+   Iterator for ADF scans.
+
+
+Example
+=======
+
+   #!/usr/bin/env python
+
+   from __future__ import print_function
+   import sane
+
+   #
+   # Change these for 16bit / grayscale scans
+   #
+   depth = 8
+   mode = 'color'
+
+   #
+   # Initialize sane
+   #
+   ver = sane.init()
+   print('SANE version:', ver)
+
+   #
+   # Get devices
+   #
+   devices = sane.get_devices()
+   print('Available devices:', devices)
+
+   #
+   # Open first device
+   #
+   dev = sane.open(devices[0][0])
+
+   #
+   # Set some options
+   #
+   params = dev.get_parameters()
+   try:
+       dev.depth = depth
+   except:
+       print('Cannot set depth, defaulting to %d' % params[3])
+
+   try:
+       dev.mode = mode
+   except:
+       print('Cannot set mode, defaulting to %s' % params[0])
+
+   try:
+       dev.br_x = 320.
+       dev.br_y = 240.
+   except:
+       print('Cannot set scan area, using default')
+
+   print('Device parameters:', dev.get_parameters())
+
+   #
+   # Start a scan and get and PIL.Image object
+   #
+   dev.start()
+   im = dev.snap()
+   im.save('test_pil.png')
+
+
+   #
+   # Start another scan and get a numpy array object
+   #
+   # Initiate the scan and get and numpy array
+   dev.start()
+   arr = dev.arr_snap()
+   print("Array shape: %s, size: %d, type: %s, range: %d-%d, mean: %.1f, stddev: %.1f" %
+         (repr(arr.shape), arr.size, arr.dtype, arr.min(), arr.max(), arr.mean(), arr.std()))
+
+   if arr.dtype == numpy.uint16:
+       arr = (arr / 255).astype(numpy.uint8)
+
+   if dev.mode == 'color':
+       im = Image.frombytes('RGB', params[2], arr.tostring(), 'raw', 'RGB', 0, 1)
+   else:
+       im = Image.frombytes('L', params[2], arr.tostring(), 'L', 'RGB', 0, 1)
+
+   im.save('test_numpy.png')
+
+   #
+   # Close the device
+   #
+   dev.close()

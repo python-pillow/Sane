@@ -7,7 +7,7 @@ Version 2.8.0
     the number of lines in advance. Also, it now reads the data into a generic
     memory buffer, removing the dependency on Pillow and numpy/numarray in the
     C code. A PIL image is created via via Image.frombuffer in sane.py now.
-  - General cleanup, fixing some Py_INCREF and Py_DECREF issues along the way
+  - General cleanup, fixing some Py_INCREF and Py_DECREF issues along the way.
 
 - sane.py:
 

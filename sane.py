@@ -8,7 +8,6 @@
 __version__ = '2.8.0'
 __author__ = ['Andrew Kuchling', 'Ralph Heinkel', 'Sandro Mani']
 
-from PIL import Image
 import _sane
 
 TYPE_STR = {_sane.TYPE_BOOL:   "TYPE_BOOL",   _sane.TYPE_INT:    "TYPE_INT",
@@ -26,25 +25,27 @@ UNIT_STR = {_sane.UNIT_NONE:        "UNIT_NONE",
 
 class Option:
     """
-    Class representing a SANE option. These are returned by a __getitem__
-    lookup of an option on the device, i.e.
+    Class representing a SANE option. These are returned by a
+    :func:`SaneDev.__getitem__` lookup of an option on the device, i.e.::
 
         option = scanner["mode"]
 
-    The Option class has the following attributes:
-    index -- number from 0 to n, giving the option number
-    name -- a string uniquely identifying the option
-    title -- single-line string containing a title for the option
-    desc -- a long string describing the option, useful as a help message
-    type -- type of this option. Possible values: TYPE_BOOL, TYPE_INT,
-            TYPE_STRING, etc.
-    unit -- units of this option. Possible values: UNIT_NONE, UNIT_PIXEL, etc.
-    size -- size of the value in bytes
-    cap -- capabilities available; CAP_EMULATED, CAP_SOFT_SELECT, etc.
-    constraint -- constraint on values. Possible values:
-                  None : No constraint
-                  (min,max,step) : Range
-                  list of integers or strings: listed of permitted values
+    The :class:`Option` class has the following attributes:
+
+      * `index` -- Number from ``0`` to ``n``, giving the option number.
+      * `name` -- A string uniquely identifying the option.
+      * `title` -- Single-line string containing a title for the option.
+      * `desc` -- A long string describing the option, useful as a help message.
+      * `type` -- Type of this option: ``TYPE_BOOL``, ``TYPE_INT``, ``TYPE_STRING``, etc.
+      * `unit` -- Units of this option. ``UNIT_NONE``, ``UNIT_PIXEL``, etc.
+      * `size` -- Size of the value in bytes.
+      * `cap` -- Capabilities available: ``CAP_EMULATED``, ``CAP_SOFT_SELECT``, etc.
+      * `constraint` -- Constraint on values. Possible values:
+      
+        - None : No constraint
+        - ``(min,max,step)`` : Range
+        - list of integers or strings: listed of permitted values
+
     """
 
     def __init__(self, args, scanDev):
@@ -62,13 +63,13 @@ class Option:
 
     def is_active(self):
         """
-        Return whether the option is active.
+        :returns: Whether the option is active.
         """
         return _sane.OPTION_IS_ACTIVE(self.cap)
 
     def is_settable(self):
         """
-        Return whether the option is settable.
+        :returns: Whether the option is settable.
         """
         return _sane.OPTION_IS_SETTABLE(self.cap)
 
@@ -130,21 +131,21 @@ class SaneDev:
       Class representing a SANE device. Besides the functions documented below,
       the class has some special attributes which can be read:
 
-      devname        -- the scanner device name (as passed to sane.open())
-      sane_signature -- the tuple (devname, brand, name, type)
-      scanner_model  -- the tuple (brand, name)
-      opt            -- dictionary of options
-      optlist        -- list of option names
-      area           -- scan area
+      * `devname`        -- The scanner device name (as passed to :func:`sane.open`).
+      * `sane_signature` -- The tuple ``(devname, brand, name, type)``.
+      * `scanner_model`  -- The tuple ``(brand, name)``.
+      * `opt`            -- Dictionary of options.
+      * `optlist`        -- List of option names.
+      * `area`           -- Scan area.
 
-      Furthermore, the scanner options are also exposed as attributes, which can
-      be read or set by using the option name as attribute name, i.e.:
+      Furthermore, the scanner options are also exposed as attributes, which
+      can be read and set::
 
           print scanner.mode
           scanner.mode = 'Color'
 
-      An Option object for a scanner option can be retreived via __getitem__
-      lookup, i.e.:
+      An :class:`Option` object for a scanner option can be retreived via
+      :func:`__getitem__`, i.e.::
 
           option = scanner['mode']
 
@@ -230,43 +231,56 @@ class SaneDev:
 
     def get_parameters(self):
         """
-        Return a 5-tuple holding all the current device settings:
-        (format, last_frame, (pixels_per_line, lines), depth, bytes_per_line)
+        Returns a 5-tuple holding all the current device settings:
+        ``(format, last_frame, (pixels_per_line, lines), depth, bytes_per_line)``
 
-        format -- one of "grey", "color", "red", "green", "blue" or "unknown format".
-        last_frame -- whether this is the last frame of a multi frame image
-        pixels_per_line -- width of the scanned image
-        lines -- height of the scanned image
-        depth -- gives number of bits per sample
-        bytes_per_line -- the number of bytes per line
+        * `format`          -- One of ``"grey"``, ``"color"``, ``"red"``, ``"green"``, ``"blue"`` or ``"unknown format"``.
+        * `last_frame`      -- Whether this is the last frame of a multi frame image.
+        * `pixels_per_line` -- Width of the scanned image.
+        * `lines`           -- Height of the scanned image.
+        * `depth`           -- The number of bits per sample.
+        * `bytes_per_line`  -- The number of bytes per line.
+
+        :returns: A tuple containing the device settings.
+        :raises _sane.error: If an error occurs.
         """
         return self.__dict__['dev'].get_parameters()
 
     def get_options(self):
-        """"
-        Return a list of tuples describing all the available options.
+        """
+        :returns: A list of tuples describing all the available options.
         """
         return self.dev.get_options()
 
     def start(self):
-        """"
-        Initiate a scanning operation. This can throw a _sane.error if an
-        invalid value is set for an option.
+        """
+        Initiate a scanning operation.
+
+        :throws _sane.error: If an error occurs, for instance if a option is
+                             set to an invalid value.
         """
         self.dev.start()
 
     def cancel(self):
-        """"
+        """
         Cancel an in-progress scanning operation.
         """
         self.dev.cancel()
 
     def snap(self, no_cancel=False):
         """
-        Read image data and return a PIL.Image object. An RGB image is returned
-        for multi-band images, a L image for single-band images.
-        No no_cancel is used for ADF scans by _SaneIterator.
+        Read image data and return a ``PIL.Image`` object. An RGB image is
+        returned for multi-band images, a L image for single-band images.
+        ``no_cancel`` is used for ADF scans by :class:`_SaneIterator`.
+
+        :returns: A ``PIL.Image`` object.
+        :raises _sane.error: If an error occurs.
+        :raises RuntimeError: If `PIL.Image` cannot be imported.
         """
+        try:
+            from PIL import Image
+        except:
+            raise RuntimeError("Cannot import PIL.Image")
         (data, width, height, samples, sampleSize) = self.dev.snap(no_cancel)
         if not data:
             raise RuntimeError("Scanner returned no data")
@@ -275,7 +289,7 @@ class SaneDev:
 
     def scan(self):
         """
-        Convenience method which calls start followed by snap.
+        Convenience method which calls :func:`SaneDev.start` followed by :func:`SaneDev.snap`.
         """
         self.start()
         return self.snap()
@@ -283,8 +297,12 @@ class SaneDev:
     def arr_snap(self):
         """
         Read image data and return a 2d numpy array. For single-band images,
-        the array shape will be (width, heigth), for multi-band images, the
-        array shape will be (nbands * width, height).
+        the array shape will be ``(width, heigth)``, for multi-band images, the
+        array shape will be ``(nbands * width, height)``.
+
+        :returns: A ``numpy.array`` object.
+        :raises _sane.error: If an error occurs.
+        :raises RuntimeError: If `numpy` cannot be imported.
         """
         try:
             import numpy
@@ -303,20 +321,21 @@ class SaneDev:
 
     def arr_scan(self):
         """
-        Convenience method which calls start followed by arr_snap.
+        Convenience method which calls :func:`SaneDev.start` followed by :func:`SaneDev.arr_snap`.
         """
         self.start()
         return self.arr_snap()
 
     def multi_scan(self):
         """
-        Return a _SaneIterator for ADF scans.
+        :returns: A :class:`_SaneIterator` for ADF scans.
         """
         return _SaneIterator(self)
 
     def fileno(self):
-        """"
-        Return the file descriptor for the scanning device.
+        """
+        :returns: The file descriptor for the scanning device, if any.
+        :raises _sane.error: If an error occurs.
         """
         return self.dev.fileno()
 
@@ -329,7 +348,10 @@ class SaneDev:
 
 def init():
     """
-    Initialize sane. Returns a tuple (sane_ver, ver_maj, ver_min, ver_patch).
+    Initialize sane.
+
+    :returns: A tuple ``(sane_ver, ver_maj, ver_min, ver_patch)``.
+    :raises _sane.error: If an error occurs.
     """
     return _sane.init()
 
@@ -337,21 +359,27 @@ def init():
 def get_devices():
     """
     Return a list of 4-tuples containing the available scanning devices.
-    Each tuple is of the format (device_name, vendor, model, type).
+    Each tuple is of the format ``(device_name, vendor, model, type)``, with:
 
-    device_name -- the device name, suitable for passing to open()
-    vendor -- the device vendor
-    mode -- the device model vendor
-    type -- the device type, such as 'virtual device' or 'video camera'
+    * `device_name` -- The device name, suitable for passing to :func:`sane.open`.
+    * `vendor` -- The device vendor.
+    * `mode` -- The device model vendor.
+    * `type` -- the device type, such as ``"virtual device"`` or ``"video camera"``.
+
+    :returns: A list of scanning devices.
+    :raises _sane.error: If an error occurs.
+
     """
     return _sane.get_devices()
 
 
 def open(devname):
-    """"
+    """
     Open a device for scanning. Suitable values for devname are returned in the
-    first item of the tuples returned by get_devices().
-    Raises a _sane.error on error. Returns a SaneDev object on success.
+    first item of the tuples returned by :func:`sane.get_devices`.
+
+    :returns: A :class:`SaneDev` object on success.
+    :raises _sane.error: If an error occurs.
     """
     return SaneDev(devname)
 

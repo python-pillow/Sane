@@ -1,13 +1,13 @@
-Python SANE module 2.7.0
+Python SANE module 2.8.0
 ========================
 
 
 Python SANE has been split from Python-Pillow as of version 2.7.0.
 
 
-The SANE module provides an interface to the SANE scanner and frame
-grabber interface for Linux.  This module was contributed by Andrew
-Kuchling formerly maintained by Ralph Heinkel.
+The SANE module provides an interface to the SANE scanner and frame grabber
+interface for Linux.  This module was contributed by Andrew Kuchling formerly
+maintained by Ralph Heinkel. It is currently maintained by Sandro Mani.
 
 Build
 -----
@@ -22,4 +22,4 @@ In order to install the module type::
 
 
 For some basic documentation please look at the file sanedoc.txt
-The three demo_*.py scripts give basic examples on how to use the software.
+The example.py script gives a basic example on how to use the software.
