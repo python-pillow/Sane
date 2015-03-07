@@ -46,8 +46,8 @@ PERFORMANCE OF THIS SOFTWARE.
 static PyObject *ErrorObject;
 
 typedef struct {
-	PyObject_HEAD
-	SANE_Handle h;
+  PyObject_HEAD
+  SANE_Handle h;
 } SaneDevObject;
 
 static PyTypeObject SaneDev_Type;
@@ -402,8 +402,6 @@ SaneDev_set_auto_option(SaneDevObject *self, PyObject *args)
   return Py_BuildValue("i", i);
 }
 
-#define READSIZE 32768
-
 static PyObject *
 SaneDev_snap(SaneDevObject *self, PyObject *args)
 {
@@ -482,7 +480,6 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
          
       int imgBufOffset = imgBufCurLine * imgBytesPerLine;
       /* Copy data to image buffer */
-      /* Recall: imgBytesPerLine = p.pixels_per_line * (p.format == SANE_FRAME_RGB ? 3 : 1); */
       if(p.format == SANE_FRAME_GRAY || p.format == SANE_FRAME_RGB)
         {
           if(p.depth == 1)
@@ -645,7 +642,7 @@ PySane_init(PyObject *self, PyObject *args)
 
   return Py_BuildValue("iiii", version,
                        SANE_VERSION_MAJOR(version),
-		       SANE_VERSION_MINOR(version),
+                       SANE_VERSION_MINOR(version),
                        SANE_VERSION_BUILD(version));
 }
 

@@ -355,9 +355,10 @@ def init():
     return _sane.init()
 
 
-def get_devices():
+def get_devices(localOnly=False):
     """
     Return a list of 4-tuples containing the available scanning devices.
+    If `localOnly` is `True`, only local devices will be returned.
     Each tuple is of the format ``(device_name, vendor, model, type)``, with:
 
     * `device_name` -- The device name, suitable for passing to :func:`sane.open`.
@@ -369,7 +370,7 @@ def get_devices():
     :raises _sane.error: If an error occurs.
 
     """
-    return _sane.get_devices()
+    return _sane.get_devices(localOnly)
 
 
 def open(devname):
