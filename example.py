@@ -72,9 +72,9 @@ if arr.dtype == numpy.uint16:
     arr = (arr / 255).astype(numpy.uint8)
 
 if params[0] == 'color':
-    im = Image.frombytes('RGB', params[2], arr.tostring(), 'raw', 'RGB', 0, 1)
+    im = Image.frombytes('RGB', arr.shape[1:], arr.tostring(), 'raw', 'RGB', 0, 1)
 else:
-    im = Image.frombytes('L', params[2], arr.tostring(), 'raw', 'RGB', 0, 1)
+    im = Image.frombytes('L', arr.shape[1:], arr.tostring(), 'raw', 'L', 0, 1)
 
 im.save('test_numpy.png')
 
