@@ -12,13 +12,15 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+import sysconfig
 import sys
 import os
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#sys.path.insert(0, os.path.abspath('.'))
+libbuilddir = "lib.{p}-{v[0]}.{v[1]}".format(p=sysconfig.get_platform(), v=sys.version_info)
+sys.path.insert(0, os.path.join(os.path.abspath('.'), '..', 'build', libbuilddir))
 
 # -- General configuration ------------------------------------------------
 
