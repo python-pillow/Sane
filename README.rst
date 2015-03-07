@@ -12,7 +12,7 @@ maintained by Ralph Heinkel. It is currently maintained by Sandro Mani.
 Build
 -----
 
-To build this module, type (in the Sane directory)::
+To build this module, type::
 
 	python setup.py build
 
@@ -23,3 +23,8 @@ In order to install the module type::
 
 For some basic documentation please look at the file sanedoc.txt
 The example.py script gives a basic example on how to use the software.
+
+Documentation
+-------------
+
+Available at http://python-sane.readthedocs.org/en/latest/
