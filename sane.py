@@ -285,7 +285,7 @@ class SaneDev:
         if not data:
             raise RuntimeError("Scanner returned no data")
         mode = 'RGB' if samples == 3 else 'L'
-        return Image.frombuffer(mode, (width, height), buffer(data), "raw", mode, 0, 1)
+        return Image.frombuffer(mode, (width, height), bytes(data), "raw", mode, 0, 1)
 
     def scan(self):
         """
