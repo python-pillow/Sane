@@ -261,3 +261,24 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
+
+# -- Mock modules for readthedocs
+try:
+    try:
+        # Python >= 3.3
+        from unittest.mock import MagicMock
+    except:
+        try:
+            # Python < 3.3
+            from mock import Mock as MagicMock
+        except:
+            raise ImportError
+
+    class Mock(MagicMock):
+        @classmethod
+        def __getattr__(cls, name):
+            return Mock()
+
+    sys.modules.update([('_sane', Mock())])
+except:
+    pass
