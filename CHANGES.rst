@@ -11,7 +11,13 @@ Version 2.8.0
 
 - sane.py:
 
-  - Cleanup
+  - Make arr_snap return a 3D numpy array, shaped (samples, width, heigth)
+  - Remove multipleOf support in arr_snap, this should be done by the caller
+  - Overall cleanup
+
+- Documentation:
+
+  - New python-sphinx generated documentation, reworked example
 
 
 Version 2.7.0
