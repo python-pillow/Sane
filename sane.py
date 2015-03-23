@@ -316,7 +316,7 @@ class SaneDev:
             np = numpy.frombuffer(data, numpy.uint16)
         else:
             raise RuntimeError("Unexpected sample size: %d" % sampleSize)
-        return numpy.asfortranarray(numpy.reshape(np, (samples, width, height)))
+        return numpy.reshape(np, (height, width, samples))
 
     def arr_scan(self):
         """
