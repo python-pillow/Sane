@@ -1,3 +1,11 @@
+Version 2.8.1
+-------------
+
+- sane.py:
+
+  - Fix array shape returned by sane.arr_snap()
+
+
 Version 2.8.0
 -------------
 

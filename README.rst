@@ -1,4 +1,4 @@
-Python SANE module 2.8.0
+Python SANE module 2.8.1
 ========================
 
 
