@@ -66,7 +66,7 @@ from V1.0 to V2.0
 
   - added constants INFO_INEXACT, INFO_RELOAD_OPTIONS,
     INFO_RELOAD_PARAMS (possible return values of set_option())
-    to module dictionnary.
+    to module dictionary.
 
   - removed additional return variable 'i' from SaneDev_get_option(),
     because it is only set when SANE_ACTION_SET_VALUE is used.
