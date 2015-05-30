@@ -8,7 +8,7 @@ sane = Extension('_sane',
                  sources = ['_sane.c'])
 
 setup (name = 'python-sane',
-       version = '2.8',
+       version = '2.8.1',
        description = 'This is the python-sane package',
        py_modules = ['sane'],
        ext_modules = [sane])
