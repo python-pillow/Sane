@@ -144,7 +144,7 @@ class SaneDev:
           print scanner.mode
           scanner.mode = 'Color'
 
-      An :class:`Option` object for a scanner option can be retreived via
+      An :class:`Option` object for a scanner option can be retrieved via
       :func:`__getitem__`, i.e.::
 
           option = scanner['mode']
