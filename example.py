@@ -65,14 +65,16 @@ im.save('test_pil.png')
 # Initiate the scan and get and numpy array
 dev.start()
 arr = dev.arr_snap()
-print("Array shape: %s, size: %d, type: %s, range: %d-%d, mean: %.1f, stddev: %.1f" %
-      (repr(arr.shape), arr.size, arr.dtype, arr.min(), arr.max(), arr.mean(), arr.std()))
+print("Array shape: %s, size: %d, type: %s, range: %d-%d, mean: %.1f, stddev: "
+      "%.1f" % (repr(arr.shape), arr.size, arr.dtype, arr.min(), arr.max(),
+                arr.mean(), arr.std()))
 
 if arr.dtype == numpy.uint16:
     arr = (arr / 255).astype(numpy.uint8)
 
 if params[0] == 'color':
-    im = Image.frombytes('RGB', arr.shape[1:], arr.tostring(), 'raw', 'RGB', 0, 1)
+    im = Image.frombytes('RGB', arr.shape[1:], arr.tostring(), 'raw', 'RGB', 0,
+                         1)
 else:
     im = Image.frombytes('L', arr.shape[1:], arr.tostring(), 'raw', 'L', 0, 1)
 
