@@ -35,13 +35,16 @@ class Option:
       * `index` -- Number from ``0`` to ``n``, giving the option number.
       * `name` -- A string uniquely identifying the option.
       * `title` -- Single-line string containing a title for the option.
-      * `desc` -- A long string describing the option, useful as a help message.
-      * `type` -- Type of this option: ``TYPE_BOOL``, ``TYPE_INT``, ``TYPE_STRING``, etc.
+      * `desc` -- A long string describing the option, useful as a help
+                  message.
+      * `type` -- Type of this option: ``TYPE_BOOL``, ``TYPE_INT``,
+                  ``TYPE_STRING``, etc.
       * `unit` -- Units of this option. ``UNIT_NONE``, ``UNIT_PIXEL``, etc.
       * `size` -- Size of the value in bytes.
-      * `cap` -- Capabilities available: ``CAP_EMULATED``, ``CAP_SOFT_SELECT``, etc.
+      * `cap` -- Capabilities available: ``CAP_EMULATED``, ``CAP_SOFT_SELECT``,
+                 etc.
       * `constraint` -- Constraint on values. Possible values:
-      
+
         - None : No constraint
         - ``(min,max,step)`` : Range
         - list of integers or strings: listed of permitted values
@@ -131,7 +134,8 @@ class SaneDev:
       Class representing a SANE device. Besides the functions documented below,
       the class has some special attributes which can be read:
 
-      * `devname`        -- The scanner device name (as passed to :func:`sane.open`).
+      * `devname`        -- The scanner device name (as passed to
+                            :func:`sane.open`).
       * `sane_signature` -- The tuple ``(devname, brand, name, type)``.
       * `scanner_model`  -- The tuple ``(brand, name)``.
       * `opt`            -- Dictionary of options.
@@ -179,7 +183,8 @@ class SaneDev:
 
     def __setattr__(self, key, value):
         d = self.__dict__
-        if key in ('dev', 'optlist', 'area', 'sane_signature', 'scanner_model'):
+        if key in ('dev', 'optlist', 'area', 'sane_signature',
+                   'scanner_model'):
             raise AttributeError("Read-only attribute: " + key)
 
         if key not in self.opt:
@@ -232,10 +237,13 @@ class SaneDev:
     def get_parameters(self):
         """
         Returns a 5-tuple holding all the current device settings:
-        ``(format, last_frame, (pixels_per_line, lines), depth, bytes_per_line)``
+        ``(format, last_frame, (pixels_per_line, lines), depth,
+        bytes_per_line)``
 
-        * `format`          -- One of ``"grey"``, ``"color"``, ``"red"``, ``"green"``, ``"blue"`` or ``"unknown format"``.
-        * `last_frame`      -- Whether this is the last frame of a multi frame image.
+        * `format`          -- One of ``"grey"``, ``"color"``, ``"red"``,
+                               ``"green"``, ``"blue"`` or ``"unknown format"``.
+        * `last_frame`      -- Whether this is the last frame of a multi frame
+                               image.
         * `pixels_per_line` -- Width of the scanned image.
         * `lines`           -- Height of the scanned image.
         * `depth`           -- The number of bits per sample.
@@ -285,11 +293,13 @@ class SaneDev:
         if not data:
             raise RuntimeError("Scanner returned no data")
         mode = 'RGB' if samples == 3 else 'L'
-        return Image.frombuffer(mode, (width, height), bytes(data), "raw", mode, 0, 1)
+        return Image.frombuffer(mode, (width, height), bytes(data), "raw",
+                                mode, 0, 1)
 
     def scan(self):
         """
-        Convenience method which calls :func:`SaneDev.start` followed by :func:`SaneDev.snap`.
+        Convenience method which calls :func:`SaneDev.start` followed by
+        :func:`SaneDev.snap`.
         """
         self.start()
         return self.snap()
@@ -320,7 +330,8 @@ class SaneDev:
 
     def arr_scan(self):
         """
-        Convenience method which calls :func:`SaneDev.start` followed by :func:`SaneDev.arr_snap`.
+        Convenience method which calls :func:`SaneDev.start` followed by
+        :func:`SaneDev.arr_snap`.
         """
         self.start()
         return self.arr_snap()
@@ -361,10 +372,12 @@ def get_devices(localOnly=False):
     If `localOnly` is `True`, only local devices will be returned.
     Each tuple is of the format ``(device_name, vendor, model, type)``, with:
 
-    * `device_name` -- The device name, suitable for passing to :func:`sane.open`.
+    * `device_name` -- The device name, suitable for passing to
+      :func:`sane.open`.
     * `vendor` -- The device vendor.
     * `mode` -- The device model vendor.
-    * `type` -- the device type, such as ``"virtual device"`` or ``"video camera"``.
+    * `type` -- the device type, such as
+    ` `"virtual device"`` or ``"video camera"``.
 
     :returns: A list of scanning devices.
     :raises _sane.error: If an error occurs.

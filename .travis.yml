@@ -1,0 +1,26 @@
+language: python
+
+python:
+ - pypy
+ - pypy3
+ - 2.6
+ - 2.7
+ - 3.2
+ - 3.3
+ - 3.4
+
+install:
+ - sudo apt-get install libsane-dev
+
+# No tests: just check it can build and install
+script:
+ - python setup.py build
+ - python setup.py install
+
+after_script:
+ - pip install pep8 pyflakes
+ - pep8 --statistics --count .
+ - pyflakes . | tee >(wc -l)
+
+matrix:
+  fast_finish: true
