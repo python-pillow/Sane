@@ -122,7 +122,7 @@ class _SaneIterator:
         try:
             self.device.start()
         except Exception as e:
-            if e == 'Document feeder out of documents':
+            if str(e) == 'Document feeder out of documents':
                 raise StopIteration
             else:
                 raise
