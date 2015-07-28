@@ -485,7 +485,7 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
           if(p.depth == 1)
             {
               for(i = 0; i < imgBytesPerLine; ++i)
-                imgBuf[imgBufOffset + i] = lineBuf[i / 8] & (0x80 >> (i % 8)) ? 0 : 255;
+                imgBuf[imgBufOffset + i] = lineBuf[i / 8] & (0x80 >> (i % 8)) ? 255 : 0;
             }
           else if(p.depth == 8)
             {
