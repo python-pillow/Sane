@@ -422,17 +422,24 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
   
   RAISE_IF(p.depth != 1 && p.depth != 8 && p.depth != 16, "Bad pixel depth");
   
-  int imgSampelsPerPixel = (p.format == SANE_FRAME_GRAY ? 1 : 3);
+  int imgSamplesPerPixel = (p.format == SANE_FRAME_GRAY ? 1 : 3);
   int imgPixelsPerLine = p.pixels_per_line;
   int imgSampleSize = (p.depth == 16 && allow16bitsamples ? 2 : 1);
-  int imgBytesPerLine = imgPixelsPerLine * imgSampelsPerPixel * imgSampleSize;
+  int imgBytesPerLine = imgPixelsPerLine * imgSamplesPerPixel * imgSampleSize;
+  int imgBytesPerScanLine = imgBytesPerLine;
+  if(p.depth == 1)
+    {
+      /* See Sane spec chapter 4.3.8 */
+      imgBytesPerScanLine = imgSamplesPerPixel * ((imgPixelsPerLine + 7) / 8);
+    }
   int imgBufCurLine = 0;
   int imgBufLines = p.lines < 1 ? 1 : p.lines;
+  const unsigned char bitMasks[8] = {128, 64, 32, 16, 8, 4, 2, 1};
   SANE_Byte* imgBuf = (SANE_Byte*)malloc(imgBufLines * imgBytesPerLine);
   
   SANE_Int lineBufUsed = 0;
-  SANE_Byte* lineBuf = (SANE_Byte*)malloc(imgBytesPerLine);
-  int i;
+  SANE_Byte* lineBuf = (SANE_Byte*)malloc(imgBytesPerScanLine);
+  int i, j;
   
   /* Read data */
   Py_BEGIN_ALLOW_THREADS
@@ -442,11 +449,11 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
     {
       /* Read one line */
       lineBufUsed = 0;
-      while(lineBufUsed < imgBytesPerLine)
+      while(lineBufUsed < imgBytesPerScanLine)
         {
           SANE_Int nRead = 0;
           st = sane_read(self->h, lineBuf + lineBufUsed,
-                         imgBytesPerLine - lineBufUsed,
+                         imgBytesPerScanLine - lineBufUsed,
                          &nRead);
           if(st != SANE_STATUS_GOOD)
             break;
@@ -484,8 +491,16 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
         {
           if(p.depth == 1)
             {
-              for(i = 0; i < imgBytesPerLine; ++i)
-                imgBuf[imgBufOffset + i] = lineBuf[i / 8] & (0x80 >> (i % 8)) ? 0 : 255;
+              /* See Sane spec chapter 3.2.1 */
+              for(j = 0; j < imgSamplesPerPixel; ++j)
+                {
+                  for(i = 0; i < imgPixelsPerLine; ++i)
+                    {
+                      int iImgBuf = imgBufOffset + imgSamplesPerPixel * i + j;
+                      int lineByte = imgSamplesPerPixel * (i / 8) + j;
+                      imgBuf[iImgBuf] = (lineBuf[lineByte] & bitMasks[i % 8]) ? 0 : 255;
+                    }
+                }
             }
           else if(p.depth == 8)
             {
@@ -511,8 +526,12 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
           int channel = p.format - SANE_FRAME_RED;
           if(p.depth == 1)
             {
-              for(i = 0; i < p.pixels_per_line; ++i)
-                imgBuf[imgBufOffset + 3 * i + channel] = lineBuf[i / 8] & (0x80 >> (i % 8)) ? 0 : 255;
+              /* See Sane spec chapter 3.2.1 */
+              for(i = 0; i < imgPixelsPerLine; ++i)
+                {
+                  int iImgBuf = imgBufOffset + 3 * i + channel;
+                  imgBuf[iImgBuf] = (lineBuf[i / 8] & bitMasks[i % 8]) ? 0 : 255;
+                }
             }
           else if(p.depth == 8)
             {
@@ -569,7 +588,7 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
     return NULL;
     
   PyObject* ret = Py_BuildValue("Oiiii", pyByteArray, imgPixelsPerLine,
-                                         imgBufLines, imgSampelsPerPixel,
+                                         imgBufLines, imgSamplesPerPixel,
                                          imgSampleSize);
   Py_DECREF(pyByteArray);
   
