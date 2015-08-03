@@ -426,13 +426,19 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
   int imgPixelsPerLine = p.pixels_per_line;
   int imgSampleSize = (p.depth == 16 && allow16bitsamples ? 2 : 1);
   int imgBytesPerLine = imgPixelsPerLine * imgSamplesPerPixel * imgSampleSize;
+  int imgBytesPerScanLine = imgBytesPerLine;
+  if(p.depth == 1)
+    {
+      /* See Sane spec chapter 4.3.8 */
+      imgBytesPerScanLine = imgSamplesPerPixel * ((imgPixelsPerLine + 7) / 8);
+    }
   int imgBufCurLine = 0;
   int imgBufLines = p.lines < 1 ? 1 : p.lines;
   const unsigned char bitMasks[8] = {1, 2, 4, 8, 16, 32, 64, 128};
   SANE_Byte* imgBuf = (SANE_Byte*)malloc(imgBufLines * imgBytesPerLine);
   
   SANE_Int lineBufUsed = 0;
-  SANE_Byte* lineBuf = (SANE_Byte*)malloc(imgBytesPerLine);
+  SANE_Byte* lineBuf = (SANE_Byte*)malloc(imgBytesPerScanLine);
   int i;
   
   /* Read data */
@@ -443,11 +449,11 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
     {
       /* Read one line */
       lineBufUsed = 0;
-      while(lineBufUsed < imgBytesPerLine)
+      while(lineBufUsed < imgBytesPerScanLine)
         {
           SANE_Int nRead = 0;
           st = sane_read(self->h, lineBuf + lineBufUsed,
-                         imgBytesPerLine - lineBufUsed,
+                         imgBytesPerScanLine - lineBufUsed,
                          &nRead);
           if(st != SANE_STATUS_GOOD)
             break;
