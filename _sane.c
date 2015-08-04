@@ -434,7 +434,7 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
     }
   int imgBufCurLine = 0;
   int imgBufLines = p.lines < 1 ? 1 : p.lines;
-  const unsigned char bitMasks[8] = {1, 2, 4, 8, 16, 32, 64, 128};
+  const unsigned char bitMasks[8] = {128, 64, 32, 16, 8, 4, 2, 1};
   SANE_Byte* imgBuf = (SANE_Byte*)malloc(imgBufLines * imgBytesPerLine);
   
   SANE_Int lineBufUsed = 0;
