@@ -498,7 +498,7 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
                     {
                       int iImgBuf = imgBufOffset + imgSamplesPerPixel * i + j;
                       int lineByte = imgSamplesPerPixel * (i / 8) + j;
-                      imgBuf[iImgBuf] = (lineBuf[lineByte] & bitMasks[i % 8]) ? 255 : 0;
+                      imgBuf[iImgBuf] = (lineBuf[lineByte] & bitMasks[i % 8]) ? 0 : 255;
                     }
                 }
             }
@@ -529,7 +529,7 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
               for(i = 0; i < imgPixelsPerLine; ++i)
                 {
                   int iImgBuf = imgBufOffset + 3 * i + channel;
-                  imgBuf[iImgBuf] = (lineBuf[i / 8] & bitMasks[i % 8]) ? 255 : 0;
+                  imgBuf[iImgBuf] = (lineBuf[i / 8] & bitMasks[i % 8]) ? 0 : 255;
                 }
             }
           else if(p.depth == 8)
