@@ -251,6 +251,9 @@ class SaneDev:
 
         :returns: A tuple containing the device settings.
         :raises _sane.error: If an error occurs.
+
+        Note: Some backends may return different parameters depending on
+        whether :func:`SaneDev.start` was called or not.
         """
         return self.__dict__['dev'].get_parameters()
 
@@ -377,7 +380,7 @@ def get_devices(localOnly=False):
     * `vendor` -- The device vendor.
     * `mode` -- The device model vendor.
     * `type` -- the device type, such as
-    ` `"virtual device"`` or ``"video camera"``.
+      ``"virtual device"`` or ``"video camera"``.
 
     :returns: A list of scanning devices.
     :raises _sane.error: If an error occurs.
