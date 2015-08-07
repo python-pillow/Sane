@@ -1,3 +1,15 @@
+Version 2.8.2
+-------------
+
+- _sane.c:
+
+  - Fix reading of 1bit scan data
+
+- sane.py:
+
+  - Fix document feeder out of documents exception checking
+
+
 Version 2.8.1
 -------------
 

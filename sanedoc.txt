@@ -41,10 +41,11 @@ sane.init()
    Raises _sane.error:
       If an error occurs.
 
-sane.get_devices()
+sane.get_devices(localOnly=False)
 
    Return a list of 4-tuples containing the available scanning
-   devices. Each tuple is of the format "(device_name, vendor, model,
+   devices. If *localOnly* is *True*, only local devices will be
+   returned. Each tuple is of the format "(device_name, vendor, model,
    type)", with:
 
    * *device_name* -- The device name, suitable for passing to
@@ -85,7 +86,8 @@ class class sane.SaneDev(devname)
    below, the class has some special attributes which can be read:
 
    * *devname*        -- The scanner device name (as passed to
-     "sane.open()").
+
+        "sane.open()").
 
    * *sane_signature* -- The tuple "(devname, brand, name, type)".
 
@@ -103,7 +105,7 @@ class class sane.SaneDev(devname)
       print scanner.mode
       scanner.mode = 'Color'
 
-   An "Option" object for a scanner option can be retreived via
+   An "Option" object for a scanner option can be retrieved via
    "__getitem__()", i.e.:
 
       option = scanner['mode']
@@ -115,9 +117,8 @@ class class sane.SaneDev(devname)
 
    arr_snap()
 
-      Read image data and return a 2d numpy array. For single-band
-      images, the array shape will be "(width, heigth)", for multi-
-      band images, the array shape will be "(nbands * width, height)".
+      Read image data and return a 3d numpy array of the shape
+      "(nbands, width, heigth)".
 
       Returns:
          A "numpy.array" object.
@@ -155,10 +156,13 @@ class class sane.SaneDev(devname)
       bytes_per_line)"
 
       * *format*          -- One of ""grey"", ""color"", ""red"",
-        ""green"", ""blue"" or ""unknown format"".
+
+           ""green"", ""blue"" or ""unknown format"".
 
       * *last_frame*      -- Whether this is the last frame of a
-        multi frame image.
+        multi frame
+
+           image.
 
       * *pixels_per_line* -- Width of the scanned image.
 
@@ -173,6 +177,9 @@ class class sane.SaneDev(devname)
 
       Raises _sane.error:
          If an error occurs.
+
+      Note: Some backends may return different parameters depending on
+      whether "SaneDev.start()" was called or not.
 
    multi_scan()
 
@@ -223,10 +230,13 @@ class class sane.Option(args, scanDev)
         option.
 
       * *desc* -- A long string describing the option, useful as a
-        help message.
+        help
+
+           message.
 
       * *type* -- Type of this option: "TYPE_BOOL", "TYPE_INT",
-        "TYPE_STRING", etc.
+
+           "TYPE_STRING", etc.
 
       * *unit* -- Units of this option. "UNIT_NONE", "UNIT_PIXEL",
         etc.
@@ -234,7 +244,9 @@ class class sane.Option(args, scanDev)
       * *size* -- Size of the value in bytes.
 
       * *cap* -- Capabilities available: "CAP_EMULATED",
-        "CAP_SOFT_SELECT", etc.
+        "CAP_SOFT_SELECT",
+
+           etc.
 
       * *constraint* -- Constraint on values. Possible values:
 
@@ -266,6 +278,8 @@ Example
 
    from __future__ import print_function
    import sane
+   import numpy
+   from PIL import Image
 
    #
    # Change these for 16bit / grayscale scans
@@ -310,7 +324,8 @@ Example
    except:
        print('Cannot set scan area, using default')
 
-   print('Device parameters:', dev.get_parameters())
+   params = dev.get_parameters()
+   print('Device parameters:', params)
 
    #
    # Start a scan and get and PIL.Image object
@@ -326,16 +341,18 @@ Example
    # Initiate the scan and get and numpy array
    dev.start()
    arr = dev.arr_snap()
-   print("Array shape: %s, size: %d, type: %s, range: %d-%d, mean: %.1f, stddev: %.1f" %
-         (repr(arr.shape), arr.size, arr.dtype, arr.min(), arr.max(), arr.mean(), arr.std()))
+   print("Array shape: %s, size: %d, type: %s, range: %d-%d, mean: %.1f, stddev: "
+         "%.1f" % (repr(arr.shape), arr.size, arr.dtype, arr.min(), arr.max(),
+                   arr.mean(), arr.std()))
 
    if arr.dtype == numpy.uint16:
        arr = (arr / 255).astype(numpy.uint8)
 
-   if dev.mode == 'color':
-       im = Image.frombytes('RGB', params[2], arr.tostring(), 'raw', 'RGB', 0, 1)
+   if params[0] == 'color':
+       im = Image.frombytes('RGB', arr.shape[1:], arr.tostring(), 'raw', 'RGB', 0,
+                            1)
    else:
-       im = Image.frombytes('L', params[2], arr.tostring(), 'L', 'RGB', 0, 1)
+       im = Image.frombytes('L', arr.shape[1:], arr.tostring(), 'raw', 'L', 0, 1)
 
    im.save('test_numpy.png')
 

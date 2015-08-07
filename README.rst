@@ -1,4 +1,4 @@
-Python SANE module 2.8.1
+Python SANE module 2.8.2
 ========================
 
 .. image:: https://travis-ci.org/python-pillow/Sane.svg
