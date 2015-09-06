@@ -1,0 +1,8 @@
+include CHANGES.rst
+include COPYING
+include example.py
+include README.rst
+include sanedoc.txt
+include doc/conf.py
+include doc/index.rst
+include doc/Makefile
