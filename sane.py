@@ -281,7 +281,7 @@ class SaneDev:
     def snap(self, no_cancel=False):
         """
         Read image data and return a ``PIL.Image`` object. An RGB image is
-        returned for multi-band images, a L image for single-band images.
+        returned for multi-band images, an L image for single-band images.
         ``no_cancel`` is used for ADF scans by :class:`_SaneIterator`.
 
         :returns: A ``PIL.Image`` object.
