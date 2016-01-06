@@ -49,7 +49,7 @@ except:
     print('Cannot set scan area, using default')
 
 params = dev.get_parameters()
-print('Device parameters:', params)
+print('Device parameters:', params, "\n Resolutions %d, x %d, y %d "%(dev.resolution, dev.x_resolution, dev.y_resolution))
 
 #
 # Start a scan and get and PIL.Image object
@@ -72,6 +72,8 @@ print("Array shape: %s, size: %d, type: %s, range: %d-%d, mean: %.1f, stddev: "
 if arr.dtype == numpy.uint16:
     arr = (arr / 255).astype(numpy.uint8)
 
+# reshape needed by PIL library
+arr=arr.reshape(arr.shape[2],arr.shape[1],arr.shape[0])
 if params[0] == 'color':
     im = Image.frombytes('RGB', arr.shape[1:], arr.tostring(), 'raw', 'RGB', 0,
                          1)

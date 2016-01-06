@@ -310,7 +310,7 @@ class SaneDev:
     def arr_snap(self):
         """
         Read image data and return a 3d numpy array of the shape
-        ``(nbands, width, heigth)``.
+        ``(width, heigth, nbands)``.
 
         :returns: A ``numpy.array`` object.
         :raises _sane.error: If an error occurs.
