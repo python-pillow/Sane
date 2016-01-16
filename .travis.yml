@@ -10,8 +10,13 @@ python:
  - 3.4
  - 3.5
 
-install:
- - sudo apt-get install libsane-dev
+# Use container-based infrastructure
+sudo: false
+
+addons:
+  apt:
+    packages:
+    - libsane-dev
 
 # No tests: just check it can build and install
 script:
