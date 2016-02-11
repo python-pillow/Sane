@@ -31,7 +31,7 @@ Version 2.8.0
 
 - sane.py:
 
-  - Make arr_snap return a 3D numpy array, shaped (samples, width, heigth)
+  - Make arr_snap return a 3D numpy array, shaped (samples, width, height)
   - Remove multipleOf support in arr_snap, this should be done by the caller
   - Overall cleanup
   - Expose the localOnly option to sane.get_devices()
