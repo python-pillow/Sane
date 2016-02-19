@@ -52,6 +52,8 @@ typedef struct {
 
 static PyTypeObject SaneDev_Type;
 
+static int g_sane_initialized = 0;
+
 
 /* Raise a SANE exception */
 static PyObject *
@@ -66,7 +68,7 @@ PySane_Error(SANE_Status st)
 static void
 SaneDev_dealloc(SaneDevObject *self)
 {
-  if(self->h)
+  if(self->h && g_sane_initialized)
     sane_close(self->h);
   self->h = NULL;
   PyObject_DEL(self);
@@ -658,7 +660,7 @@ PySane_init(PyObject *self, PyObject *args)
   SANE_Status st = sane_init(&version, NULL);
   if(st != SANE_STATUS_GOOD)
     return PySane_Error(st);
-
+  g_sane_initialized = 1;
   return Py_BuildValue("iiii", version,
                        SANE_VERSION_MAJOR(version),
                        SANE_VERSION_MINOR(version),
@@ -672,6 +674,7 @@ PySane_exit(PyObject *self, PyObject *args)
     return NULL;
 
   sane_exit();
+  g_sane_initialized = 0;
   Py_INCREF(Py_None);
   return Py_None;
 }
