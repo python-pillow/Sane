@@ -378,7 +378,7 @@ def get_devices(localOnly=False):
     * `device_name` -- The device name, suitable for passing to
       :func:`sane.open`.
     * `vendor` -- The device vendor.
-    * `mode` -- The device model vendor.
+    * `model` -- The device model vendor.
     * `type` -- the device type, such as
       ``"virtual device"`` or ``"video camera"``.
 
