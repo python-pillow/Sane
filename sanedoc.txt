@@ -2,7 +2,7 @@
 python-sane documentation
 *************************
 
-The sane module is an Python interface to the SANE (Scanning is Now
+The sane module is a Python interface to the SANE (Scanning is Now
 Easy) library, which provides access to various raster scanning
 devices such as flatbed scanners and digital cameras.  For more
 information about SANE, consult the SANE website at www.sane-
@@ -118,7 +118,7 @@ class class sane.SaneDev(devname)
    arr_snap()
 
       Read image data and return a 3d numpy array of the shape
-      "(nbands, width, heigth)".
+      "(nbands, width, height)".
 
       Returns:
          A "numpy.array" object.
@@ -194,7 +194,7 @@ class class sane.SaneDev(devname)
    snap(no_cancel=False)
 
       Read image data and return a "PIL.Image" object. An RGB image is
-      returned for multi-band images, a L image for single-band
+      returned for multi-band images, an L image for single-band
       images. "no_cancel" is used for ADF scans by "_SaneIterator".
 
       Returns:
@@ -210,7 +210,7 @@ class class sane.SaneDev(devname)
       Initiate a scanning operation.
 
       Throws _sane.error:
-         If an error occurs, for instance if a option is set to an
+         If an error occurs, for instance if an option is set to an
          invalid value.
 
 class class sane.Option(args, scanDev)
