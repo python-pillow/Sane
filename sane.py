@@ -267,7 +267,7 @@ class SaneDev:
         """
         Initiate a scanning operation.
 
-        :throws _sane.error: If an error occurs, for instance if a option is
+        :throws _sane.error: If an error occurs, for instance if an option is
                              set to an invalid value.
         """
         self.dev.start()
@@ -310,7 +310,7 @@ class SaneDev:
     def arr_snap(self):
         """
         Read image data and return a 3d numpy array of the shape
-        ``(width, heigth, nbands)``.
+        ``(width, height, nbands)``.
 
         :returns: A ``numpy.array`` object.
         :raises _sane.error: If an error occurs.
