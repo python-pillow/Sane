@@ -52,7 +52,7 @@ params = dev.get_parameters()
 print('Device parameters:', params, "\n Resolutions %d, x %d, y %d "%(dev.resolution, dev.x_resolution, dev.y_resolution))
 
 #
-# Start a scan and get and PIL.Image object
+# Start a scan and get a PIL.Image object
 #
 dev.start()
 im = dev.snap()
@@ -62,7 +62,7 @@ im.save('test_pil.png')
 #
 # Start another scan and get a numpy array object
 #
-# Initiate the scan and get and numpy array
+# Initiate the scan and get a numpy array
 dev.start()
 arr = dev.arr_snap()
 print("Array shape: %s, size: %d, type: %s, range: %d-%d, mean: %.1f, stddev: "

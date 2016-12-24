@@ -328,7 +328,7 @@ Example
    print('Device parameters:', params)
 
    #
-   # Start a scan and get and PIL.Image object
+   # Start a scan and get a PIL.Image object
    #
    dev.start()
    im = dev.snap()
@@ -338,7 +338,7 @@ Example
    #
    # Start another scan and get a numpy array object
    #
-   # Initiate the scan and get and numpy array
+   # Initiate the scan and get a numpy array
    dev.start()
    arr = dev.arr_snap()
    print("Array shape: %s, size: %d, type: %s, range: %d-%d, mean: %.1f, stddev: "
