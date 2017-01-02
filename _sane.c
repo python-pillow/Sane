@@ -1,6 +1,7 @@
 /***********************************************************
 (C) Copyright 2003 A.M. Kuchling.  All Rights Reserved
 (C) Copyright 2004 A.M. Kuchling, Ralph Heinkel  All Rights Reserved
+(C) Copyright 2013-2017 Sandro Mani  All Rights Reserved
 
 Permission to use, copy, modify, and distribute this software and its
 documentation for any purpose and without fee is hereby granted,
@@ -10,7 +11,7 @@ supporting documentation, and that the name of A.M. Kuchling and
 Ralph Heinkel not be used in advertising or publicity pertaining to
 distribution of the software without specific, written prior permission.
 
-A.M. KUCHLING, R.H. HEINKEL DISCLAIM ALL WARRANTIES WITH REGARD TO THIS
+A.M. KUCHLING, R.H. HEINKEL S. MANI DISCLAIM ALL WARRANTIES WITH REGARD TO THIS
 SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS,
 IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
 CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF
