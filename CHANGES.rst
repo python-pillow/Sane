@@ -1,3 +1,15 @@
+Version 2.8.3
+-------------
+
+- _sane.c:
+
+  - Don't call sane_close on handle if sane_exit was called since
+
+- Documentation.
+
+  - Fix example and documentation to reflect actual arr_snap array shape
+  - Fix various typos
+
 Version 2.8.2
 -------------
 
