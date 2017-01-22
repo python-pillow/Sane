@@ -269,7 +269,8 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'python-sane', u'python-sane Documentation',
-   u'Andrew Kuchling, Ralph Heinkel, Sandro Mani', 'python-sane', 'One line description of project.',
+   u'Andrew Kuchling, Ralph Heinkel, Sandro Mani', 'python-sane',
+   'Provides an interface to the SANE scanner and frame grabber interface for Linux',
    'Miscellaneous'),
 ]
 
