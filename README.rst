@@ -29,4 +29,4 @@ The example.py script gives a basic example on how to use the software.
 Documentation
 -------------
 
-Available at http://python-sane.readthedocs.org/en/latest/
+Available at http://python-sane.readthedocs.io/en/latest/
