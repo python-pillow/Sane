@@ -352,6 +352,12 @@ class SaneDev:
         """
         return self.dev.fileno()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.close()
+
     def close(self):
         """
         Close the scanning device.
