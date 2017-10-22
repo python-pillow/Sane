@@ -2,7 +2,7 @@
 python-sane documentation
 *************************
 
-The sane module is a Python interface to the SANE (Scanning is Now
+The sane module is a Python interface to the SANE (Scanner Access Now
 Easy) library, which provides access to various raster scanning
 devices such as flatbed scanners and digital cameras.  For more
 information about SANE, consult the SANE website at www.sane-
