@@ -128,6 +128,8 @@ class _SaneIterator:
                 raise
         return self.device.snap(True)
 
+    __next__ = next
+
 
 class SaneDev:
     """
