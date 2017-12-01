@@ -147,7 +147,7 @@ class SaneDev:
       Furthermore, the scanner options are also exposed as attributes, which
       can be read and set::
 
-          print scanner.mode
+          print(scanner.mode)
           scanner.mode = 'Color'
 
       An :class:`Option` object for a scanner option can be retrieved via
