@@ -55,6 +55,29 @@ static PyTypeObject SaneDev_Type;
 
 static int g_sane_initialized = 0;
 
+typedef struct {
+  PyObject_HEAD
+  SANE_Status st;
+  SANE_Parameters p;
+  int noCancel;
+  int imgSamplesPerPixel;
+  int imgPixelsPerLine;
+  int imgSampleSize;
+  int imgBytesPerLine;
+  int imgBytesPerScanLine;
+  int imgBufCurLine;
+  int imgBufLines;
+  SANE_Int lineBufUsed;
+  SANE_Byte* imgBuf;
+  SANE_Byte* lineBuf;
+  SaneDevObject * dev;
+  const unsigned char * bitMasks;
+} SaneSnapperObject;
+
+static PyTypeObject SaneSnapper_Type;
+
+const unsigned char bitMasks[8] = {128, 64, 32, 16, 8, 4, 2, 1};
+
 static void snap_line(const SaneDevObject *self, SANE_Status *status, const int imgBytesPerScanLine,
     SANE_Byte* lineBuf, SANE_Int lineBufUsed);
 static int check_snap_line(SaneDevObject *self, SANE_Status *status, SANE_Parameters *parameters);
@@ -89,6 +112,10 @@ static int snap(
 #define CONTINUE 2
 #define NEXT 0
 #define RETURN 3
+
+static PyObject *SaneDev_snapper(SaneDevObject *self, PyObject *args);
+static PyObject *prep_snapper(SaneDevObject *self, SaneSnapperObject *s, PyObject *args);
+static PyObject *snap_loop(SaneSnapperObject *s);
 
 /* Raise a SANE exception */
 static PyObject *
@@ -442,18 +469,42 @@ SaneDev_set_auto_option(SaneDevObject *self, PyObject *args)
 static PyObject *
 SaneDev_snap(SaneDevObject *self, PyObject *args)
 {
+  if(PyType_Ready(&SaneSnapper_Type) < 0)
+    return NULL;
+
+  SaneSnapperObject *snapper = PyObject_NEW(SaneSnapperObject, &SaneSnapper_Type);
+  RAISE_IF(snapper == NULL, "Failed to create SaneSnapper object");
+  snapper->dev = self;
+  Py_INCREF(self);
+
+  PyObject * ret = prep_snapper(self, snapper, args);
+  if (ret == (PyObject*) snapper)
+    ret = snap_loop(snapper);
+
+  Py_DECREF(snapper);
+  return ret;
+}
+
+static PyObject *
+prep_snapper(SaneDevObject *self, SaneSnapperObject *s, PyObject *args)
+{
+  s->lineBuf = NULL;
+  s->imgBuf = NULL;
+
   SANE_Status st;
-  
+
   int noCancel = 0;
   int allow16bitsamples = 0;
   if(!PyArg_ParseTuple(args, "|ii", &noCancel, &allow16bitsamples))
     return NULL;
-  
+
   RAISE_IF(self->h == NULL, "SaneDev object is closed");
-  
+
   /* Get parameters, prepare buffers */
   SANE_Parameters p = {};
   st = sane_get_parameters(self->h, &p);
+  s->st = st;
+  s->p = p;
   if(st != SANE_STATUS_GOOD)
     return PySane_Error(st);
   
@@ -473,33 +524,62 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
   int imgBufLines = p.lines < 1 ? 1 : p.lines;
   const unsigned char bitMasks[8] = {128, 64, 32, 16, 8, 4, 2, 1};
   SANE_Byte* imgBuf = (SANE_Byte*)malloc(imgBufLines * imgBytesPerLine);
-  
+  s->imgBuf = imgBuf;
+
   SANE_Int lineBufUsed = 0;
   SANE_Byte* lineBuf = (SANE_Byte*)malloc(imgBytesPerScanLine);
+  s->lineBuf = lineBuf;
+
+  s->noCancel = noCancel;
+  s->imgSamplesPerPixel = imgSamplesPerPixel;
+  s->imgPixelsPerLine = imgPixelsPerLine;
+  s->imgSampleSize = imgSampleSize;
+  s->imgBytesPerLine = imgBytesPerLine;
+  s->imgBytesPerScanLine = imgBytesPerScanLine;
+  s->imgBufCurLine = imgBufCurLine;
+  s->imgBufLines = imgBufLines;
+  s->lineBufUsed = lineBufUsed;
+  s->bitMasks = bitMasks;
+
+  return (PyObject *)s;
+}
+
+PyObject *
+snap_loop(SaneSnapperObject *s) {
+
+  SANE_Status st;
+  SANE_Int lineBufUsed = s->lineBufUsed;
   int i, j;
-  
+  i = j = 0;
+
+  int res = NEXT;
   /* Read data */
   Py_BEGIN_ALLOW_THREADS
   
   st = SANE_STATUS_GOOD;
+  s->st = st;
   while(st == SANE_STATUS_GOOD)
     {
-        int res = snap(self, &st, lineBuf, &imgBuf, bitMasks,
-            &imgBufCurLine, &imgBufLines, &p,
-            imgSamplesPerPixel, imgPixelsPerLine, imgSampleSize, imgBytesPerLine, imgBytesPerScanLine,
+        res = snap(s->dev, &s->st, s->lineBuf, &s->imgBuf, bitMasks,
+            &s->imgBufCurLine, &s->imgBufLines, &s->p,
+            s->imgSamplesPerPixel, s->imgPixelsPerLine, s->imgSampleSize, s->imgBytesPerLine, s->imgBytesPerScanLine,
             i, j, lineBufUsed);
+        st = s->st;
         if (res == BREAK)  // error, or (EOF and last_frame)
           break;
         else if (res == CONTINUE)  // EOF but not last frame
           continue;
         else if (res == RETURN)
-          return NULL;
+          break;
     }
-  check_snap_cancel(self, noCancel, lineBuf);
   Py_END_ALLOW_THREADS
 
-  return post_snap(&st, &imgBuf, &imgBufLines, imgBytesPerLine, imgBufCurLine, imgPixelsPerLine,
-    imgSamplesPerPixel, imgSampleSize);
+  if (res == RETURN)
+    return NULL;
+  check_snap_cancel(s->dev, s->noCancel, s->lineBuf);
+
+  return post_snap(&s->st, &s->imgBuf, &s->imgBufLines, s->imgBytesPerLine, s->imgBufCurLine, s->imgPixelsPerLine,
+    s->imgSamplesPerPixel, s->imgSampleSize);
 }
 
 int snap(
@@ -682,8 +762,6 @@ int copy_data_to_image_buffer(
         }
       else
         {
-          free(lineBuf);
-          free(imgBuf);
           PyErr_SetString(ErrorObject, "Invalid frame format");
           return RETURN;
         }
@@ -696,8 +774,9 @@ void check_snap_cancel(SaneDevObject *self, const int noCancel, SANE_Byte *lineB
   
   /* noCancel is true for ADF scans, see _SaneIterator class in sane.py */
   if(noCancel != 1)
+    Py_BEGIN_ALLOW_THREADS
     sane_cancel(self->h);
-  free(lineBuf);
+    Py_END_ALLOW_THREADS
 }
 
 PyObject* post_snap(SANE_Status *status, SANE_Byte ** imgBuf_p,
@@ -710,7 +789,6 @@ PyObject* post_snap(SANE_Status *status, SANE_Byte ** imgBuf_p,
   SANE_Status st = *status;
   if(st != SANE_STATUS_EOF)
     {
-      free(imgBuf);
       return PySane_Error(st);
     }
 
@@ -721,7 +799,6 @@ PyObject* post_snap(SANE_Status *status, SANE_Byte ** imgBuf_p,
   *imgBuf_p = imgBuf;
   PyObject* pyByteArray = PyByteArray_FromStringAndSize((const char*)imgBuf,
                                                 imgBufLines * imgBytesPerLine);
-  free(imgBuf);
   if(!pyByteArray)
     return NULL;
     
@@ -746,6 +823,7 @@ static PyMethodDef SaneDev_methods[] = {
   {"snap",      (PyCFunction)SaneDev_snap,      1},
   {"fileno",    (PyCFunction)SaneDev_fileno,    1},
   {"close",     (PyCFunction)SaneDev_close,     1},
+  {"snapper",   (PyCFunction)SaneDev_snapper,   1},
   {NULL,        NULL} /* sentinel */
 };
 
@@ -896,6 +974,114 @@ PySane_OPTION_IS_SETTABLE(PyObject *self, PyObject *args)
 
   SANE_Int cap = lg;
   return PyInt_FromLong( SANE_OPTION_IS_SETTABLE(cap));
+}
+
+static void
+SaneSnapper_dealloc(SaneSnapperObject *self)
+{
+  if (self->lineBuf)
+    free(self->lineBuf);
+  if (self->imgBuf)
+    free(self->imgBuf);
+
+  Py_DECREF(self->dev);
+  PyObject_DEL(self);
+}
+
+static PyObject *
+SaneSnapper_get_imgBufCurLine(SaneSnapperObject *self, PyObject *args)
+{
+    return PyInt_FromLong(self->imgBufCurLine);
+}
+
+
+static PyObject *
+SaneSnapper_get_imgBufLines(SaneSnapperObject *self, PyObject *args)
+{
+    return PyInt_FromLong(self->imgBufLines);
+}
+
+static PyObject *
+SaneSnapper_next(SaneSnapperObject *s, PyObject *args)
+{
+    SANE_Int lineBufUsed = 0;
+    int i = 0, j = 0;
+
+    int res;
+    Py_BEGIN_ALLOW_THREADS
+    res = snap(s->dev, &s->st, s->lineBuf, &s->imgBuf, bitMasks,
+        &s->imgBufCurLine, &s->imgBufLines, &s->p,
+        s->imgSamplesPerPixel, s->imgPixelsPerLine, s->imgSampleSize, s->imgBytesPerLine, s->imgBytesPerScanLine,
+        i, j, lineBufUsed);
+    Py_END_ALLOW_THREADS
+    if (res == CONTINUE || res == NEXT)  // EOF but not last frame
+      Py_RETURN_NONE;
+    else if (res == RETURN)
+      return NULL;
+    check_snap_cancel(s->dev, s->noCancel, s->lineBuf);
+
+    // error, or (EOF and last_frame)
+    return post_snap(&s->st, &s->imgBuf, &s->imgBufLines, s->imgBytesPerLine, s->imgBufCurLine, s->imgPixelsPerLine,
+      s->imgSamplesPerPixel, s->imgSampleSize);
+}
+
+static PyMethodDef SaneSnapper_methods[] = {
+  {"get_imgBufCurLine",  (PyCFunction)SaneSnapper_get_imgBufCurLine,   1},
+  {"get_imgBufLines",    (PyCFunction)SaneSnapper_get_imgBufLines,     1},
+  {"next",               (PyCFunction)SaneSnapper_next,                1},
+  {NULL,        NULL} /* sentinel */
+};
+
+static PyTypeObject SaneSnapper_Type = {
+  PyVarObject_HEAD_INIT(NULL, 0)
+  "SaneSnapper",                /*tp_name*/
+  sizeof(SaneSnapperObject),    /*tp_basicsize*/
+  0,                            /*tp_itemsize*/
+  /* methods */
+  (destructor)SaneSnapper_dealloc,  /*tp_dealloc*/
+  0,                            /*tp_print*/
+  0,                            /*tp_getattr*/
+  0,                            /*tp_setattr*/
+  0,                            /*tp_compare*/
+  0,                            /*tp_repr*/
+  0,                            /*tp_as_number */
+  0,                            /*tp_as_sequence */
+  0,                            /*tp_as_mapping */
+  0,                            /*tp_hash*/
+  0,                            /*tp_call*/
+  0,                            /*tp_str*/
+  0,                            /*tp_getattro*/
+  0,                            /*tp_setattro*/
+  0,                            /*tp_as_buffer*/
+  Py_TPFLAGS_DEFAULT,           /*tp_flags*/
+  0,                            /*tp_doc*/
+  0,                            /*tp_traverse*/
+  0,                            /*tp_clear*/
+  0,                            /*tp_richcompare*/
+  0,                            /*tp_weaklistoffset*/
+  0,                            /*tp_iter*/
+  0,                            /*tp_iternext*/
+  SaneSnapper_methods,          /*tp_methods*/
+  0,                            /*tp_members*/
+  0,                            /*tp_getset*/
+};
+
+static PyObject *
+SaneDev_snapper(SaneDevObject *self, PyObject *args)
+{
+  if(PyType_Ready(&SaneSnapper_Type) < 0)
+    return NULL;
+
+  SaneSnapperObject *snapper = PyObject_NEW(SaneSnapperObject, &SaneSnapper_Type);
+  RAISE_IF(snapper == NULL, "Failed to create SaneSnapper object");
+  snapper->dev = self;
+  Py_INCREF(self);
+
+  PyObject * ret = prep_snapper(self, snapper, args);
+  if (ret != (PyObject*) snapper)
+    Py_DECREF(snapper);
+
+  return ret;
 }
 
 /* List of functions defined in the module */

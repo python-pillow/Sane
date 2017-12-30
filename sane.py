@@ -131,6 +131,24 @@ class _SaneIterator:
     __next__ = next
 
 
+class SaneSnapper(object):
+
+    def __init__(self, snapper):
+        self.snapper = snapper
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        snap = self.snapper.next()
+        if snap:
+            self.snap = snap
+            raise StopIteration
+        return self.snapper.get_imgBufCurLine(), self.snapper.get_imgBufLines()
+
+    __next__ = next
+
+
 class SaneDev:
     """
       Class representing a SANE device. Besides the functions documented below,
@@ -294,7 +312,10 @@ class SaneDev:
             from PIL import Image
         except:
             raise RuntimeError("Cannot import PIL.Image")
-        (data, width, height, samples, sampleSize) = self.dev.snap(no_cancel)
+        snapper = SaneSnapper(self.dev.snapper(no_cancel))
+        for _ in snapper:
+            pass
+        (data, width, height, samples, sampleSize) = snapper.snap
         if not data:
             raise RuntimeError("Scanner returned no data")
         mode = 'RGB' if samples == 3 else 'L'
