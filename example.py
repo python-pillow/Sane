@@ -49,13 +49,25 @@ except:
     print('Cannot set scan area, using default')
 
 params = dev.get_parameters()
-print('Device parameters:', params, "\n Resolutions %d, x %d, y %d "%(dev.resolution, dev.x_resolution, dev.y_resolution))
+try:
+    print('Device parameters:', params,
+          "\n Resolutions %d, x %d, y %d " % (dev.resolution, dev.x_resolution, dev.y_resolution))
+except:
+    # some scanners don't support individual x/y resolutions
+    print('Device parameters:', params, "\n Resolutions %d" % dev.resolution)
 
 #
 # Start a scan and get a PIL.Image object
 #
 dev.start()
-im = dev.snap()
+progress = -1
+for cur, lines, im in dev.snap_generator():  # alternatively:  im = dev.snap()
+    new_progress = 100 * cur // lines
+    if new_progress != progress:
+        if new_progress < progress or not (new_progress % 10):
+            print("%d%%" % new_progress)
+        progress = new_progress
+
 im.save('test_pil.png')
 
 

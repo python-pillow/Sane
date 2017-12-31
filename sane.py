@@ -302,9 +302,25 @@ class SaneDev:
         """
         Read image data and return a ``PIL.Image`` object. An RGB image is
         returned for multi-band images, an L image for single-band images.
-        ``no_cancel`` is used for ADF scans by :class:`_SaneIterator`.
+        internally uses :func:`SaneDev.snap_generator`.
 
         :returns: A ``PIL.Image`` object.
+        :raises _sane.error: If an error occurs.
+        :raises RuntimeError: If `PIL.Image` cannot be imported.
+        """
+        for cur, lines, img in self.snap_generator(no_cancel):
+            pass  # we just need img
+        return img
+
+    def snap_generator(self, no_cancel=False):
+        """
+        Get a generator that eventually returns a 3-tuple that has a ``PIL.Image``
+        object as the third element. Scan progress can be retrieved from the first
+        element which is the number of lines scanned and second element which is
+        the total number of lines to scan.
+        ``no_cancel`` is used for ADF scans by :class:`_SaneIterator`.
+
+        :returns: A generator.
         :raises _sane.error: If an error occurs.
         :raises RuntimeError: If `PIL.Image` cannot be imported.
         """
@@ -313,14 +329,16 @@ class SaneDev:
         except:
             raise RuntimeError("Cannot import PIL.Image")
         snapper = SaneSnapper(self.dev.snapper(no_cancel))
-        for _ in snapper:
-            pass
+        cur = lines = 0
+        for cur, lines in snapper:
+            yield (cur, lines, None)
         (data, width, height, samples, sampleSize) = snapper.snap
         if not data:
             raise RuntimeError("Scanner returned no data")
         mode = 'RGB' if samples == 3 else 'L'
-        return Image.frombuffer(mode, (width, height), bytes(data), "raw",
-                                mode, 0, 1)
+        img = Image.frombuffer(mode, (width, height), bytes(data), "raw",
+                               mode, 0, 1)
+        yield (cur, lines, img)
 
     def scan(self):
         """
