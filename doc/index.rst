@@ -10,7 +10,7 @@ Note that this documentation doesn't duplicate all the information in the SANE
 documentation, which you must also consult to get a complete understanding.
 
 This module has been originally developed by
-`A.M. Kuchling <mailto:amk1@erols.com>`_, it is currently maintained by
+`A.M. Kuchling <http://amk.ca/>`_, it is currently maintained by
 `Sandro Mani <mailto:manisandro@gmail.com>`_.
 
 .. contents::
