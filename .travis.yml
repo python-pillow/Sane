@@ -1,9 +1,6 @@
 dist: xenial
 language: python
 
-# Use container-based infrastructure
-sudo: false
-
 addons:
   apt:
     packages:
@@ -32,4 +29,3 @@ matrix:
     - python: 3.5
     - python: 3.6
     - python: 3.7
-      sudo: required
