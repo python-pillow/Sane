@@ -121,12 +121,12 @@ class _SaneIterator:
     def next(self):
         try:
             self.device.start()
+            return self.device.snap(True)
         except Exception as e:
             if str(e) == 'Document feeder out of documents':
                 raise StopIteration
             else:
                 raise
-        return self.device.snap(True)
 
     __next__ = next
 
