@@ -280,7 +280,7 @@ class SaneDev:
         """
         self.dev.cancel()
 
-    def snap(self, no_cancel=False):
+    def snap(self, no_cancel=False, progress=None):
         """
         Read image data and return a ``PIL.Image`` object. An RGB image is
         returned for multi-band images, an L image for single-band images.
@@ -294,7 +294,8 @@ class SaneDev:
             from PIL import Image
         except:
             raise RuntimeError("Cannot import PIL.Image")
-        (data, width, height, samples, sampleSize) = self.dev.snap(no_cancel)
+        result = self.dev.snap(no_cancel, False, progress)
+        data, width, height, samples, sampleSize = result
         if not data:
             raise RuntimeError("Scanner returned no data")
         mode = 'RGB' if samples == 3 else 'L'

@@ -55,7 +55,6 @@ static PyTypeObject SaneDev_Type;
 
 static int g_sane_initialized = 0;
 
-
 /* Raise a SANE exception */
 static PyObject *
 PySane_Error(SANE_Status st)
@@ -162,7 +161,9 @@ SaneDev_cancel(SaneDevObject *self, PyObject *args)
 
   RAISE_IF(self->h == NULL, "SaneDev object is closed");
 
+  Py_BEGIN_ALLOW_THREADS
   sane_cancel(self->h);
+  Py_END_ALLOW_THREADS
   Py_INCREF(Py_None);
   return Py_None;
 }
@@ -412,9 +413,15 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
   
   int noCancel = 0;
   int allow16bitsamples = 0;
-  if(!PyArg_ParseTuple(args, "|ii", &noCancel, &allow16bitsamples))
+  PyObject *progress = NULL;
+  if(!PyArg_ParseTuple(args, "|iiO", &noCancel, &allow16bitsamples, &progress))
     return NULL;
   
+  if(progress && progress != Py_None && !PyCallable_Check(progress))
+    {
+      PyErr_SetString(PyExc_ValueError, "progress is not callable");
+      return NULL;
+    }
   RAISE_IF(self->h == NULL, "SaneDev object is closed");
   
   /* Get parameters, prepare buffers */
@@ -437,6 +444,7 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
     }
   int imgBufCurLine = 0;
   int imgBufLines = p.lines < 1 ? 1 : p.lines;
+  int imgPrioriLines = p.lines;
   const unsigned char bitMasks[8] = {128, 64, 32, 16, 8, 4, 2, 1};
   SANE_Byte* imgBuf = (SANE_Byte*)malloc(imgBufLines * imgBytesPerLine);
   
@@ -445,11 +453,10 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
   int i, j;
   
   /* Read data */
-  Py_BEGIN_ALLOW_THREADS
-  
   st = SANE_STATUS_GOOD;
   while(st == SANE_STATUS_GOOD)
     {
+      Py_BEGIN_ALLOW_THREADS
       /* Read one line */
       lineBufUsed = 0;
       while(lineBufUsed < imgBytesPerScanLine)
@@ -567,13 +574,32 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
           return NULL;
         }
       ++imgBufCurLine;
-    }
+      Py_END_ALLOW_THREADS
   
+      if(progress && progress != Py_None)
+        {
+          PyObject *progArgs = Py_BuildValue("ii", imgBufCurLine, imgPrioriLines);
+          PyObject_Call(progress, progArgs, NULL);
+          Py_DECREF(progArgs);
+          if(PyErr_Occurred())
+            {
+              Py_BEGIN_ALLOW_THREADS
+              free(lineBuf);
+              free(imgBuf);
+              sane_cancel(self->h);
+              Py_END_ALLOW_THREADS
+              return NULL;
+            }
+        }
+    }
   /* noCancel is true for ADF scans, see _SaneIterator class in sane.py */
   if(noCancel != 1)
-    sane_cancel(self->h);
+    {
+      Py_BEGIN_ALLOW_THREADS
+      sane_cancel(self->h);
+      Py_END_ALLOW_THREADS
+    }
   free(lineBuf);
-  Py_END_ALLOW_THREADS
   
   if(st != SANE_STATUS_EOF)
     {
