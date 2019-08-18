@@ -280,7 +280,7 @@ class SaneDev:
         """
         self.dev.cancel()
 
-    def snap(self, no_cancel=False):
+    def snap(self, no_cancel=False, progress=None):
         """
         Read image data and return a ``PIL.Image`` object. An RGB image is
         returned for multi-band images, an L image for single-band images.
@@ -294,22 +294,23 @@ class SaneDev:
             from PIL import Image
         except:
             raise RuntimeError("Cannot import PIL.Image")
-        (data, width, height, samples, sampleSize) = self.dev.snap(no_cancel)
+        result = self.dev.snap(no_cancel, False, progress)
+        data, width, height, samples, sampleSize = result
         if not data:
             raise RuntimeError("Scanner returned no data")
         mode = 'RGB' if samples == 3 else 'L'
         return Image.frombuffer(mode, (width, height), bytes(data), "raw",
                                 mode, 0, 1)
 
-    def scan(self):
+    def scan(self, progress=None):
         """
         Convenience method which calls :func:`SaneDev.start` followed by
         :func:`SaneDev.snap`.
         """
         self.start()
-        return self.snap()
+        return self.snap(progress=progress)
 
-    def arr_snap(self):
+    def arr_snap(self, progress=None):
         """
         Read image data and return a 3d numpy array of the shape
         ``(width, height, nbands)``.
@@ -322,7 +323,8 @@ class SaneDev:
             import numpy
         except:
             raise RuntimeError("Cannot import numpy")
-        (data, width, height, samples, sampleSize) = self.dev.snap(False, True)
+        result = self.dev.snap(False, True, progress)
+        data, width, height, samples, sampleSize = result
         if not data:
             raise RuntimeError("Scanner returned no data")
         if sampleSize == 1:
@@ -333,13 +335,13 @@ class SaneDev:
             raise RuntimeError("Unexpected sample size: %d" % sampleSize)
         return numpy.reshape(np, (height, width, samples))
 
-    def arr_scan(self):
+    def arr_scan(self, progress=None):
         """
         Convenience method which calls :func:`SaneDev.start` followed by
         :func:`SaneDev.arr_snap`.
         """
         self.start()
-        return self.arr_snap()
+        return self.arr_snap(progress=progress)
 
     def multi_scan(self):
         """
