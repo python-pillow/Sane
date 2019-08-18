@@ -469,7 +469,8 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
             break;
           lineBufUsed += nRead;
         }
-      
+      Py_END_ALLOW_THREADS
+
       /* Check status, in particular if need to restart for the next frame */
       if(st != SANE_STATUS_GOOD)
         {
@@ -574,20 +575,18 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
           return NULL;
         }
       ++imgBufCurLine;
-      Py_END_ALLOW_THREADS
   
       if(progress && progress != Py_None)
         {
           PyObject *progArgs = Py_BuildValue("ii", imgBufCurLine, imgPrioriLines);
-          PyObject_Call(progress, progArgs, NULL);
+          PyObject *result = PyObject_Call(progress, progArgs, NULL);
+          Py_DECREF(result);
           Py_DECREF(progArgs);
           if(PyErr_Occurred())
             {
-              Py_BEGIN_ALLOW_THREADS
               free(lineBuf);
               free(imgBuf);
               sane_cancel(self->h);
-              Py_END_ALLOW_THREADS
               return NULL;
             }
         }
@@ -595,9 +594,7 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
   /* noCancel is true for ADF scans, see _SaneIterator class in sane.py */
   if(noCancel != 1)
     {
-      Py_BEGIN_ALLOW_THREADS
       sane_cancel(self->h);
-      Py_END_ALLOW_THREADS
     }
   free(lineBuf);
   
