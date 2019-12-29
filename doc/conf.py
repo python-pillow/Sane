@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # python-sane documentation build configuration file, created by
 # sphinx-quickstart on Sun Feb 15 18:59:52 2015.
@@ -70,8 +69,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'python-sane'
-copyright = u'2003-2019, Andrew Kuchling, Ralph Heinkel, Sandro Mani'
+project = 'python-sane'
+copyright = '2003-2019, Andrew Kuchling, Ralph Heinkel, Sandro Mani'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -224,8 +223,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('index', 'python-sane.tex', u'python-sane Documentation',
-   u'Andrew Kuchling, Ralph Heinkel, Sandro Mani', 'manual'),
+  ('index', 'python-sane.tex', 'python-sane Documentation',
+   'Andrew Kuchling, Ralph Heinkel, Sandro Mani', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -254,8 +253,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'python-sane', u'python-sane Documentation',
-     [u'Andrew Kuchling, Ralph Heinkel, Sandro Mani'], 1)
+    ('index', 'python-sane', 'python-sane Documentation',
+     ['Andrew Kuchling, Ralph Heinkel, Sandro Mani'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -268,8 +267,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'python-sane', u'python-sane Documentation',
-   u'Andrew Kuchling, Ralph Heinkel, Sandro Mani', 'python-sane',
+  ('index', 'python-sane', 'python-sane Documentation',
+   'Andrew Kuchling, Ralph Heinkel, Sandro Mani', 'python-sane',
    'Provides an interface to the SANE scanner and frame grabber interface for Linux',
    'Miscellaneous'),
 ]
