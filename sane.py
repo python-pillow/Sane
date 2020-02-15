@@ -118,7 +118,7 @@ class _SaneIterator:
     def __del__(self):
         self.device.cancel()
 
-    def next(self):
+    def __next__(self):
         try:
             self.device.start()
             return self.device.snap(True)
@@ -127,8 +127,6 @@ class _SaneIterator:
                 raise StopIteration
             else:
                 raise
-
-    __next__ = next
 
 
 class SaneDev:
