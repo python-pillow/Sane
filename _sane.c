@@ -49,6 +49,7 @@ static PyObject *ErrorObject;
 typedef struct {
   PyObject_HEAD
   SANE_Handle h;
+  char name[256];
 } SaneDevObject;
 
 static PyTypeObject SaneDev_Type;
@@ -578,7 +579,7 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
   
       if(progress && progress != Py_None)
         {
-          PyObject *progArgs = Py_BuildValue("ii", imgBufCurLine, imgPrioriLines);
+          PyObject *progArgs = Py_BuildValue("sii", self->name, imgBufCurLine, imgPrioriLines);
           PyObject *result = PyObject_Call(progress, progArgs, NULL);
           Py_DECREF(result);
           Py_DECREF(progArgs);
@@ -746,10 +747,11 @@ PySane_open(PyObject *self, PyObject *args)
   
   if(PyType_Ready(&SaneDev_Type) < 0)
     return NULL;
-
+  
   SaneDevObject *dev = PyObject_NEW(SaneDevObject, &SaneDev_Type);
   RAISE_IF(dev == NULL, "Failed to create SaneDev object");
   dev->h = NULL;
+  strcpy(dev->name, name);
 
   SANE_Status st;
   Py_BEGIN_ALLOW_THREADS
