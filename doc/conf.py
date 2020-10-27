@@ -17,15 +17,7 @@ import os
 
 # -- Mock module for _sane
 try:
-    try:
-        # Python >= 3.3
-        from unittest.mock import MagicMock
-    except:
-        try:
-            # Python < 3.3
-            from mock import Mock as MagicMock
-        except:
-            raise ImportError
+    from unittest.mock import MagicMock
 
     class Mock(MagicMock):
         @classmethod
