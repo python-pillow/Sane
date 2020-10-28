@@ -31,12 +31,6 @@ PERFORMANCE OF THIS SOFTWARE.
 
 #include <sys/time.h>
 
-#if PY_MAJOR_VERSION >= 3
-  #define PyInt_AsLong PyLong_AsLong
-  #define PyInt_FromLong PyLong_FromLong
-  #define PyInt_Check PyLong_Check
-#endif
-
 #define RAISE_IF(test, message) \
   if(test) \
     { \
@@ -228,13 +222,9 @@ SaneDev_get_options(SaneDevObject *self, PyObject *args)
             PyObject *item = NULL;
             for(j = 0; d->constraint.string_list[j] != NULL; j++)
               {
-#if PY_MAJOR_VERSION >= 3
                 item = PyUnicode_DecodeLatin1(d->constraint.string_list[j],
                                           strlen(d->constraint.string_list[j]),
                                               NULL);
-#else
-                item = PyString_FromString(d->constraint.string_list[j]);
-#endif
                 PyList_Append(constraint, item);
                 Py_XDECREF(item);
               }
@@ -287,13 +277,9 @@ SaneDev_get_option(SaneDevObject *self, PyObject *args)
       value = Py_BuildValue("d", SANE_UNFIX((*((SANE_Fixed*)v))) );
       break;
     case SANE_TYPE_STRING:
-#if PY_MAJOR_VERSION >= 3
       value = PyUnicode_DecodeLatin1((const char *) v,
                                    strlen((const char *) v),
                                    NULL);
-#else
-      value = Py_BuildValue("s", v);
-#endif
       break;
     case SANE_TYPE_BUTTON:
     case SANE_TYPE_GROUP:
@@ -347,7 +333,6 @@ SaneDev_set_option(SaneDevObject *self, PyObject *args)
       memcpy(v, &wordval, sizeof(SANE_Word));
       break;
     case SANE_TYPE_STRING:
-#if PY_MAJOR_VERSION >= 3
       if(!PyUnicode_Check(value))
         {
           PyErr_SetString(PyExc_TypeError, "SANE_STRING requires a string");
@@ -364,16 +349,6 @@ SaneDev_set_option(SaneDevObject *self, PyObject *args)
       strncpy(v, PyBytes_AsString(strobj), d->size - 1);
       ((char*)v)[d->size - 1] = 0;
       Py_DECREF(strobj);
-#else
-      if(!PyString_Check(value))
-        {
-          PyErr_SetString(PyExc_TypeError, "SANE_STRING requires a string");
-          free(v);
-          return NULL;
-        }
-      strncpy(v, PyString_AsString(value), d->size - 1);
-      ((char*)v)[d->size - 1] = 0;
-#endif
       break;
     case SANE_TYPE_BUTTON:
     case SANE_TYPE_GROUP:
@@ -808,7 +783,6 @@ insint(PyObject *d, char *name, int value)
   Py_XDECREF(v);
 }
 
-#if PY_MAJOR_VERSION >= 3
 static struct PyModuleDef PySane_moduledef = {
   PyModuleDef_HEAD_INIT,
   "_sane",
@@ -828,16 +802,6 @@ PyInit__sane(void)
   PyObject *m = PyModule_Create(&PySane_moduledef);
   if(!m)
     return NULL;
-#else /* if PY_MAJOR_VERSION < 3 */
-
-PyMODINIT_FUNC
-init_sane(void)
-{
-  /* Create the module and add the functions */
-  PyObject *m = Py_InitModule("_sane", PySane_methods);
-  if(!m)
-    return;
-#endif
 
   /* Add some symbolic constants to the module */
   PyObject *d = PyModule_GetDict(m);
@@ -897,7 +861,5 @@ init_sane(void)
       m = NULL;
     }
 
-#if PY_MAJOR_VERSION >= 3
   return m;
-#endif
 }
