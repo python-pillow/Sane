@@ -1,8 +1,8 @@
 Python SANE module 2.8.3
 ========================
 
-.. image:: https://api.travis-ci.org/python-pillow/Sane.svg
-    :target: https://travis-ci.org/python-pillow/Sane
+.. image:: https://travis-ci.com/python-pillow/Sane.svg?branch=master
+    :target: https://travis-ci.com/github/python-pillow/Sane
 
 Python SANE has been split from Python-Pillow as of version 2.7.0.
 
