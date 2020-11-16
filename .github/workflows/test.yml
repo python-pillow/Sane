@@ -1,0 +1,41 @@
+name: Test
+
+on: [push, pull_request]
+
+env:
+  FORCE_COLOR: 1
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.6", "3.7", "3.8", "3.9", "pypy3"]
+        os: [ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get install libsane-dev
+
+      # No tests: just check it can build and install
+      - name: Test build and install
+        shell: bash
+        run: |
+          python setup.py build
+          python setup.py install
+
+      - name: Lint
+        shell: bash
+        run: |
+          pip install pycodestyle pyflakes
+          pycodestyle --statistics --count . || true
+          pyflakes . | tee >(wc -l)
