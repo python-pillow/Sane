@@ -1,5 +1,8 @@
 import setuptools
 
+with open("README.rst", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
+
 sane = setuptools.Extension('_sane',
                  include_dirs=[],
                  libraries=['sane'],
@@ -10,6 +13,8 @@ sane = setuptools.Extension('_sane',
 setuptools.setup(name='python-sane',
       version='2.9.1',
       description='This is the python-sane package',
+      long_description=long_description,
+      long_description_content_type="text/x-rst",
       url='https://github.com/python-pillow/Sane',
       maintainer='Sandro Mani',
       maintainer_email='manisandro@gmail.com',
