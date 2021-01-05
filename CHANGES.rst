@@ -1,9 +1,15 @@
+Version 2.9.1
+
+- _sane.c:
+
+  - Fix compatibility with python3.6+
+
 Version 2.9.0
 -------------
 
 - Removed support for Python 2
 
--_sane.c, sane.py:
+- _sane.c, sane.py:
 
   - Add a progress parameter for the snap, arr_snap, scan and arr_scan methods.
 
