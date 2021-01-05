@@ -125,7 +125,7 @@ SaneDev_fileno(SaneDevObject *self, PyObject *args)
   SANE_Status st = sane_get_select_fd(self->h, &fd);
   if(st != SANE_STATUS_GOOD)
     return PySane_Error(st);
-  return PyInt_FromLong(fd);
+  return PyLong_FromLong(fd);
 }
 
 static PyObject *
@@ -209,7 +209,7 @@ SaneDev_get_options(SaneDevObject *self, PyObject *args)
             if(d->type == SANE_TYPE_INT)
               for(j = 1; j <= d->constraint.word_list[0]; ++j)
                 PyList_SetItem(constraint, j - 1,
-                                PyInt_FromLong(d->constraint.word_list[j]));
+                                PyLong_FromLong(d->constraint.word_list[j]));
             else if(d->type == SANE_TYPE_FIXED)
               for(j = 1; j <= d->constraint.word_list[0]; ++j)
                 PyList_SetItem(constraint, j - 1,
@@ -313,13 +313,13 @@ SaneDev_set_option(SaneDevObject *self, PyObject *args)
     {
     case SANE_TYPE_BOOL:
     case SANE_TYPE_INT:
-      if(!PyInt_Check(value))
+      if(!PyLong_Check(value))
         {
           PyErr_SetString(PyExc_TypeError, "SANE_INT and SANE_BOOL require an integer");
           free(v);
           return NULL;
         }
-      wordval = PyInt_AsLong(value);
+      wordval = PyLong_AsLong(value);
       memcpy(v, &wordval, sizeof(SANE_Word));
       break;
     case SANE_TYPE_FIXED:
@@ -747,7 +747,7 @@ PySane_OPTION_IS_ACTIVE(PyObject *self, PyObject *args)
     return NULL;
 
   SANE_Int cap = lg;
-  return PyInt_FromLong( SANE_OPTION_IS_ACTIVE(cap));
+  return PyLong_FromLong( SANE_OPTION_IS_ACTIVE(cap));
 }
 
 static PyObject *
@@ -758,7 +758,7 @@ PySane_OPTION_IS_SETTABLE(PyObject *self, PyObject *args)
     return NULL;
 
   SANE_Int cap = lg;
-  return PyInt_FromLong( SANE_OPTION_IS_SETTABLE(cap));
+  return PyLong_FromLong( SANE_OPTION_IS_SETTABLE(cap));
 }
 
 /* List of functions defined in the module */
@@ -776,7 +776,7 @@ static PyMethodDef PySane_methods[] = {
 static void
 insint(PyObject *d, char *name, int value)
 {
-  PyObject *v = PyInt_FromLong((long) value);
+  PyObject *v = PyLong_FromLong((long) value);
   if(!v || PyDict_SetItemString(d, name, v) == -1)
     PyErr_SetString(ErrorObject, "Can't initialize sane module");
 
