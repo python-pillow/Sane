@@ -1,18 +1,19 @@
-from distutils.core import setup, Extension
+import setuptools
 
-sane = Extension('_sane',
+sane = setuptools.Extension('_sane',
                  include_dirs=[],
                  libraries=['sane'],
                  define_macros=[],
                  extra_compile_args=[],
                  sources=['_sane.c'])
 
-setup(name='python-sane',
+setuptools.setup(name='python-sane',
       version='2.9.0',
       description='This is the python-sane package',
       url='https://github.com/python-pillow/Sane',
       maintainer='Sandro Mani',
       maintainer_email='manisandro@gmail.com',
+      packages=setuptools.find_packages(),
       classifiers=[
           "Programming Language :: Python :: 3",
           "Programming Language :: Python :: 3.6",
