@@ -116,7 +116,11 @@ class _SaneIterator:
         return self
 
     def __del__(self):
-        self.device.cancel()
+        try:
+            self.device.cancel()
+        except:
+            # In case device was already closed
+            pass
 
     def __next__(self):
         try:
