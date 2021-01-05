@@ -5,7 +5,7 @@
 # of SANE, consult the documentation at the SANE home page:
 # http://www.sane-project.org/docs.html
 
-__version__ = '2.8.3'
+__version__ = '2.9.0'
 __author__ = ['Andrew Kuchling', 'Ralph Heinkel', 'Sandro Mani']
 
 import _sane

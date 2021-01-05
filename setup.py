@@ -8,7 +8,7 @@ sane = Extension('_sane',
                  sources=['_sane.c'])
 
 setup(name='python-sane',
-      version='2.8.3',
+      version='2.9.0',
       description='This is the python-sane package',
       url='https://github.com/python-pillow/Sane',
       maintainer='Sandro Mani',

@@ -1,3 +1,17 @@
+Version 2.9.0
+-------------
+
+- Removed support for Python 2
+
+-_sane.c, sane.py:
+
+  - Add a progress parameter for the snap, arr_snap, scan and arr_scan methods.
+
+- sane.py:
+
+  - Catch exceptions returned by self.device.snap
+  - Add __next__ to _SaneIterator for Python 3
+
 Version 2.8.3
 -------------
 
