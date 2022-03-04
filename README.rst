@@ -16,11 +16,11 @@ Build
 
 To build this module, make sure the sane development package is installed. Then, type::
 
-	python setup.py build
+	python3 setup.py build
 
 In order to install the module type::
 
-	python -m pip install .
+	python3 -m pip install .
 
 
 For some basic documentation please look at the file sanedoc.txt

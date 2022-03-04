@@ -30,8 +30,8 @@ jobs:
       - name: Test build and install
         shell: bash
         run: |
-          python setup.py build
-          python -m pip install .
+          python3 setup.py build
+          python3 -m pip install .
 
       - name: Lint
         shell: bash
