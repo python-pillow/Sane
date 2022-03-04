@@ -20,7 +20,7 @@ To build this module, make sure the sane development package is installed. Then,
 
 In order to install the module type::
 
-	python setup.py install
+	python -m pip install .
 
 
 For some basic documentation please look at the file sanedoc.txt
