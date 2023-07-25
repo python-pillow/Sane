@@ -17,6 +17,28 @@ This module has been originally developed by
    :local:
    :depth: 1
 
+Installation
+============
+
+Basic Installation using pip
+----------------------------
+Before you begin, ensure that the libsane-dev package is installed on your system. This is a required dependency.
+
+On Debian-based system (like Ubuntu), you can install libsane-dev using the apt package manager.
+
+    apt install libsane-dev
+
+Then install the packages via pip
+
+    pip install python-sane
+
+
+Building from sources
+---------------------
+
+You can find the instructions on how to build and install from sources in the main README.rst
+
+
 Indices
 =======
 
