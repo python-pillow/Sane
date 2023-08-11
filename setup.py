@@ -1,6 +1,6 @@
 import setuptools
 
-with open("README.rst", "r", encoding="utf-8") as fh:
+with open("README.rst", encoding="utf-8") as fh:
     long_description = fh.read()
 
 sane = setuptools.Extension('_sane',
@@ -21,17 +21,16 @@ setuptools.setup(name='python-sane',
       packages=setuptools.find_packages(),
       classifiers=[
           "Programming Language :: Python :: 3",
-          "Programming Language :: Python :: 3.6",
-          "Programming Language :: Python :: 3.7",
           "Programming Language :: Python :: 3.8",
           "Programming Language :: Python :: 3.9",
           "Programming Language :: Python :: 3.10",
+          "Programming Language :: Python :: 3.11",
           "Programming Language :: Python :: 3 :: Only",
           "Programming Language :: Python :: Implementation :: CPython",
           "Programming Language :: Python :: Implementation :: PyPy",
           "Topic :: Multimedia :: Graphics",
           "Topic :: Multimedia :: Graphics :: Capture :: Scanners",
       ],
-      python_requires=">=3.6",
+      python_requires=">=3.8",
       py_modules=['sane'],
       ext_modules=[sane])
