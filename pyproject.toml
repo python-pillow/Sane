@@ -2,6 +2,7 @@
 requires = [
   "setuptools>=67.8",
 ]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "python-sane"
