@@ -1,0 +1,30 @@
+[build-system]
+requires = [
+  "setuptools>=67.8",
+]
+
+[project]
+name = "python-sane"
+version = "2.9.1"
+description = "This is the python-sane package"
+readme = "README.rst"
+authors = [{name = "Sandro Mani", email = "manisandro@gmail.com"}]
+requires-python = ">=3.8"
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+  "Topic :: Multimedia :: Graphics",
+  "Topic :: Multimedia :: Graphics :: Capture :: Scanners",
+]
+[project.urls]
+Homepage = "https://github.com/python-pillow/Sane"
+
+[tool.setuptools]
+py-modules = ["sane"]
