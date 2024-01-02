@@ -1,7 +1,7 @@
 /***********************************************************
 (C) Copyright 2003 A.M. Kuchling.  All Rights Reserved
 (C) Copyright 2004 A.M. Kuchling, Ralph Heinkel  All Rights Reserved
-(C) Copyright 2013-2023 Sandro Mani  All Rights Reserved
+(C) Copyright 2013-2024 Sandro Mani  All Rights Reserved
 
 Permission to use, copy, modify, and distribute this software and its
 documentation for any purpose and without fee is hereby granted,
