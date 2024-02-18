@@ -118,7 +118,7 @@ class _SaneIterator:
     def __del__(self):
         try:
             self.device.cancel()
-        except:
+        except Exception:
             # In case device was already closed
             pass
 
@@ -294,7 +294,7 @@ class SaneDev:
         """
         try:
             from PIL import Image
-        except:
+        except ImportError:
             raise RuntimeError("Cannot import PIL.Image")
         result = self.dev.snap(no_cancel, False, progress)
         data, width, height, samples, sampleSize = result
@@ -323,7 +323,7 @@ class SaneDev:
         """
         try:
             import numpy
-        except:
+        except ImportError:
             raise RuntimeError("Cannot import numpy")
         result = self.dev.snap(False, True, progress)
         data, width, height, samples, sampleSize = result

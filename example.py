@@ -33,22 +33,26 @@ dev = sane.open(devices[0][0])
 params = dev.get_parameters()
 try:
     dev.depth = depth
-except:
+except Exception:
     print('Cannot set depth, defaulting to %d' % params[3])
 
 try:
     dev.mode = mode
-except:
+except Exception:
     print('Cannot set mode, defaulting to %s' % params[0])
 
 try:
     dev.br_x = 320.
     dev.br_y = 240.
-except:
+except Exception:
     print('Cannot set scan area, using default')
 
 params = dev.get_parameters()
-print('Device parameters:', params, "\n Resolutions %d, x %d, y %d "%(dev.resolution, dev.x_resolution, dev.y_resolution))
+print(
+    'Device parameters:', params,
+    '\n Resolutions %d, x %d, y %d '
+    % (dev.resolution, dev.x_resolution, dev.y_resolution)
+)
 
 #
 # Start a scan and get a PIL.Image object
@@ -72,7 +76,7 @@ if arr.dtype == numpy.uint16:
     arr = (arr / 255).astype(numpy.uint8)
 
 # reshape needed by PIL library
-arr=arr.reshape(arr.shape[2],arr.shape[1],arr.shape[0])
+arr = arr.reshape(arr.shape[2], arr.shape[1], arr.shape[0])
 if params[0] == 'color':
     im = Image.frombytes('RGB', arr.shape[1:], arr.tostring(), 'raw', 'RGB', 0,
                          1)
