@@ -68,7 +68,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'python-sane'
-copyright = '2003-2024, Andrew Kuchling, Ralph Heinkel, Sandro Mani'
+copyright = '2003, Andrew Kuchling, Ralph Heinkel, Sandro Mani'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
