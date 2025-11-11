@@ -24,6 +24,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          sudo apt-get update
           sudo apt-get install libsane-dev
 
       # No tests: just check it can install
