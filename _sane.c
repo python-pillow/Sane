@@ -350,11 +350,11 @@ SaneDev_set_option(SaneDevObject *self, PyObject *args)
       ((char*)v)[d->size - 1] = 0;
       Py_DECREF(strobj);
       break;
-    case SANE_TYPE_BUTTON:
     case SANE_TYPE_GROUP:
-      PyErr_SetString(ErrorObject, "SANE_TYPE_BUTTON and SANE_TYPE_GROUP can't be set");
+      PyErr_SetString(ErrorObject, "SANE_TYPE_GROUP can't be set");
       free(v);
       return NULL;
+    case SANE_TYPE_BUTTON:
     }
 
   SANE_Int info = 0;

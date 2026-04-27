@@ -196,8 +196,6 @@ class SaneDev:
             return
 
         opt = d['opt'][key]
-        if opt.type == _sane.TYPE_BUTTON:
-            raise AttributeError("Buttons don't have values: " + key)
         if opt.type == _sane.TYPE_GROUP:
             raise AttributeError("Groups don't have values: " + key)
         if not _sane.OPTION_IS_ACTIVE(opt.cap):
