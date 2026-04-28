@@ -89,3 +89,8 @@ im.save('test_numpy.png')
 # Close the device
 #
 dev.close()
+
+#
+# Exiting sane
+#
+sane.exit()
