@@ -33,6 +33,15 @@ jobs:
         run: |
           python3 -m pip install .
 
+      - name: Test snap params-cache regression (mock backend)
+        # CPython only: the mock test runs the C extension under LD_PRELOAD,
+        # which is not reliable under cpyext (PyPy).
+        if: ${{ !contains(matrix.python-version, 'pypy') }}
+        shell: bash
+        run: |
+          python3 -m pip install pytest
+          python3 -m pytest tests/test_snap_params_cache.py -v
+
       - name: Lint
         shell: bash
         run: |

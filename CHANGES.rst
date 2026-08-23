@@ -10,6 +10,13 @@ Unreleased
     `snap()`, instead of issuing a redundant `sane_get_parameters()` call.
     (fixes #107)
 
+- tests:
+
+  - Add a mock-backend regression test (`tests/mock/libsane_mock.c`) that
+    emulates a backend returning `SANE_STATUS_INVAL` on a repeated
+    `sane_get_parameters()` call, exercising snap() through the cached-params
+    path (depth-8, depth-1, and snap without a prior get_parameters).
+
 
 Version 2.9.2
 -------------
