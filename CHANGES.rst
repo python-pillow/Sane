@@ -1,3 +1,16 @@
+Unreleased
+----------
+
+- _sane.c:
+
+  - Fix `SaneDev.snap()` failing with `SANE_STATUS_INVAL` against backends
+    that return `SANE_STATUS_INVAL` on a second `sane_get_parameters()` call
+    after `sane_start` (e.g. Epson `epsonscan2`). The parameters retrieved by
+    `get_parameters()` are now cached on the `SaneDevObject` and reused by
+    `snap()`, instead of issuing a redundant `sane_get_parameters()` call.
+    (fixes #107)
+
+
 Version 2.9.2
 -------------
 

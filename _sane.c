@@ -43,6 +43,8 @@ static PyObject *ErrorObject;
 typedef struct {
   PyObject_HEAD
   SANE_Handle h;
+  SANE_Parameters cached_params;
+  int params_valid;
 } SaneDevObject;
 
 static PyTypeObject SaneDev_Type;
@@ -99,6 +101,9 @@ SaneDev_get_parameters(SaneDevObject *self, PyObject *args)
 
   if(st != SANE_STATUS_GOOD)
     return PySane_Error(st);
+
+  self->cached_params = p;
+  self->params_valid = 1;
   switch(p.format)
     {
       case(SANE_FRAME_GRAY):  format="gray"; break;
@@ -143,6 +148,7 @@ SaneDev_start(SaneDevObject *self, PyObject *args)
   Py_END_ALLOW_THREADS
   if(st != SANE_STATUS_GOOD)
     return PySane_Error(st);
+  self->params_valid = 0;
   Py_INCREF(Py_None);
   return Py_None;
 }
@@ -399,11 +405,23 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
     }
   RAISE_IF(self->h == NULL, "SaneDev object is closed");
   
-  /* Get parameters, prepare buffers */
+  /* Get parameters, prepare buffers.
+     Use the cached params from the most recent get_parameters() call.
+     The epsonscan2 backend returns INVAL on a second sane_get_parameters()
+     call after sane_start; the wrapper's get_parameters() already retrieved
+     and cached the correct params. If the cache is empty (snap called
+     without a prior get_parameters), fall back to sane_get_parameters. */
   SANE_Parameters p = {};
-  st = sane_get_parameters(self->h, &p);
-  if(st != SANE_STATUS_GOOD)
-    return PySane_Error(st);
+  if(self->params_valid)
+    {
+      p = self->cached_params;
+    }
+  else
+    {
+      st = sane_get_parameters(self->h, &p);
+      if(st != SANE_STATUS_GOOD)
+        return PySane_Error(st);
+    }
   
   RAISE_IF(p.depth != 1 && p.depth != 8 && p.depth != 16, "Bad pixel depth");
   
@@ -455,9 +473,12 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
               st = sane_start(self->h);
               if(st != SANE_STATUS_GOOD)
                 break;
+              self->params_valid = 0;
               st = sane_get_parameters(self->h, &p);
               if(st != SANE_STATUS_GOOD)
                 break;
+              self->cached_params = p;
+              self->params_valid = 1;
               /* Continue reading */
               continue;
             }
@@ -725,6 +746,7 @@ PySane_open(PyObject *self, PyObject *args)
   SaneDevObject *dev = PyObject_NEW(SaneDevObject, &SaneDev_Type);
   RAISE_IF(dev == NULL, "Failed to create SaneDev object");
   dev->h = NULL;
+  dev->params_valid = 0;
 
   SANE_Status st;
   Py_BEGIN_ALLOW_THREADS
