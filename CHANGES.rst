@@ -1,3 +1,23 @@
+Unreleased
+----------
+
+- _sane.c:
+
+  - Fix `SaneDev.snap()` failing with `SANE_STATUS_INVAL` against backends
+    that return `SANE_STATUS_INVAL` on a second `sane_get_parameters()` call
+    after `sane_start` (e.g. Epson `epsonscan2`). The parameters retrieved by
+    `get_parameters()` are now cached on the `SaneDevObject` and reused by
+    `snap()`, instead of issuing a redundant `sane_get_parameters()` call.
+    (fixes #107)
+
+- tests:
+
+  - Add a mock-backend regression test (`tests/mock/libsane_mock.c`) that
+    emulates a backend returning `SANE_STATUS_INVAL` on a repeated
+    `sane_get_parameters()` call, exercising snap() through the cached-params
+    path (depth-8, depth-1, and snap without a prior get_parameters).
+
+
 Version 2.9.2
 -------------
 
