@@ -555,8 +555,8 @@ SaneDev_snap(SaneDevObject *self, PyObject *args)
         {
           PyObject *progArgs = Py_BuildValue("ii", imgBufCurLine, imgPrioriLines);
           PyObject *result = PyObject_Call(progress, progArgs, NULL);
-          Py_DECREF(result);
-          Py_DECREF(progArgs);
+          Py_XDECREF(result);
+          Py_XDECREF(progArgs);
           if(PyErr_Occurred())
             {
               free(lineBuf);
