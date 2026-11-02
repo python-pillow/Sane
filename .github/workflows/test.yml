@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14", "pypy-3.11"]
+        python-version: ["3.11", "3.12", "3.13", "3.14", "3.15", "pypy-3.11", "pypy-3.12"]
         os: [ubuntu-latest]
 
     steps:
@@ -36,6 +36,6 @@ jobs:
       - name: Lint
         shell: bash
         run: |
-          pip install pycodestyle pyflakes
+          python3 -m pip install pycodestyle pyflakes
           pycodestyle --statistics --count . || true
           pyflakes . | tee >(wc -l)
